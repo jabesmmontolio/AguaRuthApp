@@ -1,0 +1,589 @@
+import React, { useState, useEffect } from "react";
+
+// ─── BRANDING ESTÉTICO ORIGINAL (DARK MODE PREMIUM) ─────────────────────────
+const B = {
+  azulOscuro: "#1A65A4",
+  celeste: "#70CCE1",
+  azulMedio: "#4EA5E0",
+  fondo: "#07101C",
+  fondoCard: "#0C1828",
+  fondoBorde: "#152233",
+  texto: "#E8F4FD",
+  textoSub: "#4F7A99",
+};
+
+// ─── ESTRUCTURA DE LAS 6 CUENTAS FIJAS DE LA EMPRESA ─────────────────────────
+const CUENTAS = [
+  { id: "inversiones", nombre: "Inversiones", emoji: "📈", color: "#22C55E", num: "0071079263" },
+  { id: "general", nombre: "General", emoji: "🏦", color: "#4EA5E0", num: "0071074923" },
+  { id: "nomina", nombre: "Nómina Empleados", emoji: "👥", color: "#70CCE1", num: "0071078372" },
+  { id: "emergencia", nombre: "Fondo Emergencia", emoji: "🛡️", color: "#F59E0B", num: "0071079273" },
+  { id: "prestamo", nombre: "Préstamo Reservas", emoji: "🏛️", color: "#A78BFA", num: "0071079283" },
+  { id: "insumos", nombre: "Insumos", emoji: "⚙️", color: "#FB923C", num: "0071074293" },
+];
+
+// ─── LISTADO EXCLUSIVO DE MESES PARA EL PERIODO CONTABLE ──────────────────────
+const MESES_2026 = [
+  { val: "2026-01", label: "Enero 2026" },
+  { val: "2026-02", label: "Febrero 2026" },
+  { val: "2026-03", label: "Marzo 2026" },
+  { val: "2026-04", label: "Abril 2026" },
+  { val: "2026-05", label: "Mayo 2026" },
+  { val: "2026-06", label: "Junio 2026" },
+  { val: "2026-07", label: "Julio 2026" },
+  { val: "2026-08", label: "Agosto 2026" },
+  { val: "2026-09", label: "Septiembre 2026" },
+  { val: "2026-10", label: "Octubre 2026" },
+  { val: "2026-11", label: "Noviembre 2026" },
+  { val: "2026-12", label: "Diciembre 2026" },
+];
+
+// SUBCATEGORÍAS LIMPIAS INICIALES (SIN EMOJIS INTERNOS)
+const INITIAL_CATS = [
+  { id: "1", nombre: "Ganancia", cuenta: "inversiones", color: "#22C55E" },
+  { id: "2", nombre: "Botellones", cuenta: "inversiones", color: "#4ADE80" },
+  { id: "3", nombre: "Tapas", cuenta: "inversiones", color: "#16A34A" },
+  { id: "4", nombre: "Sellos", cuenta: "inversiones", color: "#15803D" },
+  { id: "5", nombre: "Etiquetas", cuenta: "inversiones", color: "#86EFAC" },
+  { id: "6", nombre: "Electricidad", cuenta: "general", color: "#F59E0B" },
+  { id: "7", nombre: "Agua", cuenta: "general", color: "#70CCE1" },
+  { id: "8", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
+  { id: "9", nombre: "Alquiler Local", cuenta: "general", color: "#A78BFA" },
+  { id: "10", nombre: "Nómina", cuenta: "nomina", color: "#70CCE1" },
+  { id: "11", nombre: "Fondo de Emergencia", cuenta: "emergencia", color: "#F59E0B" },
+  { id: "12", nombre: "Reparaciones", cuenta: "emergencia", color: "#FB923C" },
+  { id: "13", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
+  { id: "14", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
+];
+
+// ESTRUCTURA DE PRESUPUESTO ASIGNADA A CADA CUENTA ORIGEN PARA DEDUCCIÓN AUTOMÁTICA
+const INITIAL_PAGOS = [
+  { id: "p1", semana: 1, nombre: "Teléfono e Internet", monto: 2500, cuenta: "general", ok: false },
+  { id: "p2", semana: 1, nombre: "Agua", monto: 286, cuenta: "general", ok: false },
+  { id: "p3", semana: 1, nombre: "Gasolina", monto: 8025, cuenta: "insumos", ok: false },
+  { id: "p4", semana: 1, nombre: "TSS / Seguro", monto: 3700, cuenta: "general", ok: false },
+  { id: "p7", semana: 1, nombre: "Electricidad", monto: 10903, cuenta: "general", ok: false },
+  
+  // SEMANA 2 - NÓMINAS DETALLADAS REALES
+  { id: "p8_1", semana: 2, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
+  { id: "p8_2", semana: 2, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p8_3", semana: 2, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
+  { id: "p8_4", semana: 2, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
+  { id: "p8_5", semana: 2, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p8_6", semana: 2, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
+  { id: "p8_7", semana: 2, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
+  { id: "p8_8", semana: 2, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
+  { id: "p8_9", semana: 2, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
+
+  // SEMANA 3 - COMPROMISOS FINANCIEROS
+  { id: "p15", semana: 3, nombre: "Préstamo Coop", monto: 15000, cuenta: "prestamo", ok: false },
+  { id: "p16", semana: 3, nombre: "Alquiler Local", monto: 13680, cuenta: "general", ok: false },
+  { id: "p17", semana: 3, nombre: "Préstamo Reservas", monto: 32200, cuenta: "prestamo", ok: false },
+
+  // SEMANA 4 - SEGUNDA QUINCENA SINCRO
+  { id: "p18_1", semana: 4, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
+  { id: "p18_2", semana: 4, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p18_3", semana: 4, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
+  { id: "p18_4", semana: 4, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
+  { id: "p18_5", semana: 4, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p18_6", semana: 4, fontW: 700, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
+  { id: "p18_7", semana: 4, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
+  { id: "p18_8", semana: 4, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
+  { id: "p18_9", semana: 4, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
+];
+
+const INITIAL_BALANCES = { inversiones: 0, general: 0, nomina: 0, emergencia: 0, prestamo: 0, insumos: 0 };
+
+// ─── FORMATOS MÓVILES ───
+const fmt = (n) => `RD$ ${Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "0%");
+const hoy = () => new Date().toISOString().slice(0, 10);
+const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
+
+function useStore(key, init) {
+  const [v, set] = useState(() => {
+    try {
+      const s = localStorage.getItem(key);
+      return s ? JSON.parse(s) : init;
+    } catch { return init; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
+  }, [key, v]);
+  return [v, set];
+}
+
+// ─── COMPONENTES ESTILOS COMPACTOS CON BOX-SIZING PROTEGIDO ─────────────────
+function Card({ children, style = {}, glow = false }) {
+  return (
+    <div style={{ background: B.fondoCard, border: `1px solid ${glow ? B.azulOscuro + "99" : B.fondoBorde}`, borderRadius: 20, padding: 18, width: "100%", boxSizing: "border-box", ...style }}>
+      {children}
+    </div>
+  );
+}
+function Lbl({ children, style = {} }) {
+  return <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: B.textoSub, marginBottom: 8, fontFamily: "-apple-system, sans-serif", ...style }}>{children}</div>;
+}
+function Inp({ style = {}, ...p }) {
+  return <input {...p} style={{ background: "#091526", border: `1px solid ${B.fondoBorde}`, borderRadius: 12, padding: "11px 14px", color: B.texto, fontSize: 15, width: "100%", boxSizing: "border-box", outline: "none", ...style }} />;
+}
+function Sel({ children, style = {}, ...p }) {
+  return <select {...p} style={{ background: "#091526", border: `1px solid ${B.fondoBorde}`, borderRadius: 12, padding: "11px 14px", color: B.texto, fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", ...style }}>{children}</select>;
+}
+function Btn({ children, onClick, v = "primary", style = {}, disabled = false }) {
+  const vs = {
+    primary: { background: `linear-gradient(135deg,${B.azulOscuro},${B.azulMedio})`, color: "#fff", border: "none" },
+    ghost: { background: "transparent", color: B.celeste, border: `1px solid ${B.celeste}44` },
+    danger: { background: "transparent", color: "#EF4444", border: "1px solid #EF444440" },
+  };
+  return (
+    <button onClick={onClick} disabled={disabled} style={{ ...vs[v], borderRadius: 14, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: "100%", boxSizing: "border-box", ...style }}>
+      {children}
+    </button>
+  );
+}
+
+// ─── PESTAÑA INICIO: CON MATEMÁTICA EN TIEMPO REAL REVERSIBLE ─────────────────
+function Dashboard({ registros = [], pagos = [], todasCats = [], balancesIniciales = INITIAL_BALANCES }) {
+  const [mesFiltro, setMesFiltro] = useState(obtenerMesActual());
+
+  const registrosDelMes = registros.filter((r) => r.fecha.startsWith(mesFiltro));
+  const ingresosMes = registrosDelMes.reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
+
+  const esMesActual = mesFiltro === obtenerMesActual();
+  const pagosPendientes = pagos
+    .filter((p) => (esMesActual ? !p.ok : true))
+    .reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
+
+  const saldosCuentas = {};
+  CUENTAS.forEach((c) => {
+    saldosCuentas[c.id] = parseFloat(balancesIniciales[c.id]) || 0;
+  });
+
+  registros.forEach((r) => {
+    if (r.fecha.slice(0, 7) <= mesFiltro) {
+      (r.items || []).forEach((i) => {
+        let cId = "general";
+        const catObj = todasCats.find((c) => c.nombre === i.cat);
+        if (catObj) cId = catObj.cuenta;
+        if (saldosCuentas[cId] !== undefined) saldosCuentas[cId] += parseFloat(i.monto) || 0;
+      });
+    }
+  });
+
+  pagos.forEach((p) => {
+    if (p.ok) {
+      const cuentaDestino = p.cuenta || "general";
+      if (saldosCuentas[cuentaDestino] !== undefined) {
+        saldosCuentas[cuentaDestino] -= parseFloat(p.monto) || 0;
+      }
+    }
+  });
+
+  const saldoTotalGlobal = Object.values(saldosCuentas).reduce((a, b) => a + b, 0);
+  const gananciaAcumulada = saldosCuentas["inversiones"] || 0;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", boxSizing: "border-box" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+        <div>
+          <div style={{ fontSize: 10, color: B.textoSub, textTransform: "uppercase", letterSpacing: 1 }}>RESUMEN CONTROL</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: B.texto, marginTop: 2 }}>Periodo Contable</div>
+        </div>
+        <div style={{ width: 140 }}>
+          <Sel value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)} style={{ padding: "8px 12px", fontSize: 13, background: "#0C1828", borderRadius: 12 }}>
+            {MESES_2026.map((m) => (
+              <option key={m.val} value={m.val}>{m.label}</option>
+            ))}
+          </Sel>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
+        <div style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
+          <span style={{ fontSize: 10, color: B.textoSub, fontWeight: 700 }}>SALDO TOTAL CUENTAS</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: B.texto }}>{fmt(saldoTotalGlobal)}</span>
+        </div>
+        <div style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
+          <span style={{ fontSize: 10, color: B.textoSub, fontWeight: 700 }}>GANANCIA ACUMULADA</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#22C55E" }}>{fmt(gananciaAcumulada)}</span>
+        </div>
+        <div style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
+          <span style={{ fontSize: 10, color: B.textoSub, fontWeight: 700 }}>INGRESO DEL MES</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: B.celeste }}>{fmt(ingresosMes)}</span>
+        </div>
+        <div style={{ background: B.fondoCard, border: `1px solid ${B.azulOscuro}55`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
+          <span style={{ fontSize: 10, color: B.textoSub, fontWeight: 700 }}>PAGOS PENDIENTES</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#FB923C" }}>{fmt(pagosPendientes)}</span>
+        </div>
+      </div>
+
+      <Card style={{ padding: 14 }}>
+        <Lbl>DISTRIBUCIÓN DEL MES</Lbl>
+        <div style={{ height: 12, borderRadius: 6, display: "flex", overflow: "hidden", background: B.fondoBorde, marginBottom: 12 }}>
+          {CUENTAS.map((c) => {
+            const porcentaje = saldoTotalGlobal > 0 ? ((saldosCuentas[c.id] || 0) / saldoTotalGlobal) * 100 : 0;
+            if (porcentaje <= 0) return null;
+            return <div key={c.id} style={{ width: `${porcentaje}%`, height: "100%", background: c.color }} />;
+          })}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px" }}>
+          {CUENTAS.map((c) => (
+            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: c.color }} />
+              <span style={{ color: B.texto, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nombre}</span>
+              <span style={{ color: B.textoSub }}>{pct(saldosCuentas[c.id] || 0, saldoTotalGlobal)}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+        <Lbl style={{ marginBottom: 2 }}>ESTADO DE CUENTAS AL PERIODO</Lbl>
+        {CUENTAS.map((c) => (
+          <div key={c.id} style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 18 }}>{c.emoji}</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{c.nombre}</div>
+                <div style={{ fontSize: 10, color: B.textoSub }}>No. {c.num}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: c.color }}>
+              {fmt(saldosCuentas[c.id] || 0)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── PESTAÑA DISTRIBUIR EXCEL STYLE ──────────────────────────────────────────
+function Distribucion({ onGuardar, todasCats = [] }) {
+  const [fecha, setFecha] = useState(hoy());
+  const [ingreso, setIngreso] = useState("");
+  const [items, setItems] = useState([{ cat: "", monto: "" }]);
+  const [ok, setOk] = useState(false);
+
+  const totalIng = parseFloat(ingreso) || 0;
+  const totalDist = items.reduce((s, i) => s + (parseFloat(i.monto) || 0), 0);
+  const diff = totalIng - totalDist;
+
+  const addItem = () => setItems([...items, { cat: "", monto: "" }]);
+  const upd = (i, f, v) => { const a = [...items]; a[i][f] = v; setItems(a); };
+  const rem = (i) => setItems(items.filter((_, x) => x !== i));
+
+  const guardar = () => {
+    if (!fecha || totalIng === 0 || diff !== 0) return;
+    onGuardar({
+      id: Date.now(),
+      fecha,
+      ingreso: totalIng,
+      items: items.filter((i) => i.cat && i.monto).map((i) => ({ ...i, monto: parseFloat(i.monto) || 0 })),
+    });
+    setIngreso(""); setItems([{ cat: "", monto: "" }]);
+    setOk(true); setTimeout(() => setOk(false), 3000);
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <Lbl>ASIGNACIÓN COMPLETA DEL DÍA</Lbl>
+      {ok && <Card style={{ background: "#14532D", textAlign: "center", color: "#22C55E", fontWeight: 700 }}>✅ Guardado e indexado en balances</Card>}
+
+      <Card><Lbl>FECHA CONTABLE</Lbl><Inp type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} /></Card>
+      <Card glow><Lbl>INGRESO BRUTO EVALUADO</Lbl><Inp type="number" inputMode="decimal" placeholder="RD$ 0.00" value={ingreso} onChange={(e) => setIngreso(e.target.value)} style={{ fontSize: 20, fontWeight: 700, color: B.celeste }} /></Card>
+
+      <Card>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <Lbl style={{ marginBottom: 0 }}>DISTRIBUCIÓN DE FONDOS</Lbl>
+          <button onClick={addItem} style={{ background: `${B.azulOscuro}33`, border: `1px solid ${B.azulOscuro}`, color: B.celeste, borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>+ Fila</button>
+        </div>
+        {items.map((it, i) => (
+          <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 8 }}>
+            <Sel value={it.cat} onChange={(e) => upd(i, "cat", e.target.value)} style={{ flex: 2 }}>
+              <option value="">Concepto...</option>
+              {CUENTAS.map((cu) => (
+                <optgroup key={cu.id} label={`${cu.emoji} ${cu.nombre}`}>
+                  {todasCats.filter((c) => c.cuenta === cu.id).map((c) => (
+                    <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </Sel>
+            <Inp type="number" inputMode="decimal" placeholder="RD$" value={it.monto} onChange={(e) => upd(i, "monto", e.target.value)} style={{ flex: 1.5 }} />
+            <button onClick={() => rem(i)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 20, cursor: "pointer" }}>×</button>
+          </div>
+        ))}
+        {totalIng > 0 && (
+          <div style={{ fontSize: 13, color: diff === 0 ? "#22C55E" : diff > 0 ? "#F59E0B" : "#EF4444", fontWeight: 600, marginTop: 8 }}>
+            {diff === 0 ? "✓ Distribución Cuadrada" : diff > 0 ? `Por asignar: ${fmt(diff)}` : `Excedido: ${fmt(Math.abs(diff))}`}
+          </div>
+        )}
+      </Card>
+      <Btn onClick={guardar} disabled={totalIng === 0 || diff !== 0}>💾 Procesar Distribución</Btn>
+    </div>
+  );
+}
+
+// ─── PESTAÑA PRESUPUESTO SEMANAL ─────────────────────────────────────────────
+function Pagos({ pagos = [], setPagos }) {
+  const [sem, setSem] = useState(1);
+  const [editMode, setEditMode] = useState(false);
+  const [nuevo, setNuevo] = useState({ semana: 1, nombre: "", monto: "", cuenta: "general" });
+
+  const fSem = (s) => pagos.filter((p) => p.semana === s);
+  const totS = (s) => fSem(s).reduce((a, p) => a + (parseFloat(p.monto) || 0), 0);
+
+  const togglePago = (id) => setPagos(pagos.map((p) => (p.id === id ? { ...p, ok: !p.ok } : p)));
+  const eliminarItem = (id) => setPagos(pagos.filter((p) => p.id !== id));
+  
+  const agregarItem = () => {
+    if (!nuevo.nombre || !nuevo.monto) return;
+    setPagos([...pagos, { id: Date.now().toString(), semana: nuevo.semana, nombre: nuevo.nombre, monto: parseFloat(nuevo.monto) || 0, cuenta: nuevo.cuenta, ok: false }]);
+    setNuevo({ semana: sem, nombre: "", monto: "", cuenta: "general" });
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Presupuesto Semanal</div>
+          <div style={{ fontSize: 12, color: B.textoSub }}>Estructura de egresos obligatorios</div>
+        </div>
+        <button onClick={() => setEditMode(!editMode)} style={{ background: "transparent", border: `1px solid ${B.celeste}`, color: B.celeste, padding: "6px 12px", borderRadius: 10, fontSize: 13, cursor: "pointer" }}>
+          {editMode ? "✓ Ver Panel" : "✏️ Editar"}
+        </button>
+      </div>
+
+      {!editMode ? (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, width: "100%" }}>
+            {[1, 2, 3, 4].map((s) => (
+              <button key={s} onClick={() => setSem(s)} style={{ background: sem === s ? "#1A65A433" : B.fondoCard, border: `1px solid ${sem === s ? B.azulOscuro : B.fondoBorde}`, borderRadius: 12, padding: 8, color: B.texto, cursor: "pointer" }}>
+                <div style={{ fontSize: 9, color: B.textoSub }}>SEM {s}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2 }}>{fmt(totS(s)).split(".")[0]}</div>
+              </button>
+            ))}
+          </div>
+          <Card>
+            <Lbl>CUOTAS SEMANA {sem}</Lbl>
+            {fSem(sem).length === 0 && <div style={{ fontSize: 13, color: B.textoSub, textAlign: "center", padding: "10px 0" }}>No hay rubros programados.</div>}
+            {fSem(sem).map((p) => (
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: `1px solid ${B.fondoBorde}44` }}>
+                <button onClick={() => togglePago(p.id)} style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.ok ? "#22C55E" : B.fondoBorde}`, background: p.ok ? "#22C55E" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>
+                  {p.ok ? "✓" : ""}
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, color: p.ok ? B.textoSub : B.texto }}>{p.nombre}</div>
+                  <div style={{ fontSize: 9, color: B.textoSub, textTransform: "uppercase" }}>Salida: {p.cuenta}</div>
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: p.ok ? B.textoSub : B.texto }}>{fmt(p.monto)}</span>
+              </div>
+            ))}
+          </Card>
+        </>
+      ) : (
+        <Card style={{ border: `1px solid ${B.azulMedio}` }}>
+          <Lbl style={{ color: B.celeste }}>ORGANIZADOR COMPLETO DEL MES</Lbl>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 6 }}>
+              <Sel value={nuevo.semana} onChange={(e) => setNuevo({ ...nuevo, semana: parseInt(e.target.value) })}>
+                <option value={1}>Sem 1</option><option value={2}>Sem 2</option><option value={3}>Sem 3</option><option value={4}>Sem 4</option>
+              </Sel>
+              <Inp placeholder="Nombre del Gasto / Empleado" value={nuevo.nombre} onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 6 }}>
+              <Sel value={nuevo.cuenta} onChange={(e) => setNuevo({ ...nuevo, cuenta: e.target.value })}>
+                {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </Sel>
+              <Inp type="number" placeholder="RD$" value={nuevo.monto} onChange={(e) => setNuevo({ ...nuevo, monto: e.target.value })} />
+            </div>
+            <Btn onClick={agregarItem}>+ Insertar Obligación</Btn>
+          </div>
+
+          <Lbl style={{ marginTop: 14 }}>RUBROS ASIGNADOS AL MOMENTO</Lbl>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 200, overflowY: "auto" }}>
+            {pagos.map((p) => (
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#091424", padding: "8px 10px", borderRadius: 10 }}>
+                <span style={{ fontSize: 10, color: B.textoSub, minWidth: 26 }}>S{p.semana}</span>
+                <span style={{ flex: 1, fontSize: 13, color: B.texto, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: B.celeste }}>{fmt(p.monto).split(".")[0]}</span>
+                <button onClick={() => eliminarItem(p.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 18, cursor: "pointer" }}>×</button>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ─── PESTAÑA CUENTAS: BALANCES + GESTIÓN DE SUBCATEGORÍAS DINÁMICAS ──────────
+function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, setTodasCats }) {
+  const [nuevaCat, setNuevaCat] = useState("");
+  const [cuentaSeleccionada, setCuentaSeleccionada] = useState("general");
+
+  const agregarCategoria = () => {
+    if (!nuevaCat.trim()) return;
+    
+    // Obtener color estructural de la cuenta para mantener sincronía de marca
+    const cuentaObj = CUENTAS.find(c => c.id === cuentaSeleccionada);
+    const colorCat = cuentaObj ? cuentaObj.color : "#4EA5E0";
+
+    const nueva = {
+      id: Date.now().toString(),
+      nombre: nuevaCat.trim(), // Nombre limpio sin emojis integrados
+      cuenta: cuentaSeleccionada,
+      color: colorCat
+    };
+
+    setTodasCats([...todasCats, nueva]);
+    setNuevaCat("");
+  };
+
+  const eliminarCategoria = (id) => {
+    setTodasCats(todasCats.filter(c => c.id !== id));
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Cuentas del Sistema</div>
+        <div style={{ fontSize: 12, color: B.textoSub }}>Inyección de balances y estructuración</div>
+      </div>
+      
+      {/* SECCIÓN 1: BALANCES LÍQUIDOS */}
+      <Card style={{ border: `1px solid ${B.azulOscuro}55` }}>
+        <Lbl style={{ color: B.celeste }}>FIJAR BALANCES DE ENTRADA</Lbl>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {CUENTAS.map((c) => (
+            <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", alignItems: "center", background: "#091424", padding: "8px 14px", borderRadius: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{c.emoji} {c.nombre}</span>
+              <Inp type="number" placeholder="0.00" value={balancesIniciales[c.id] || ""} onChange={(e) => setBalancesIniciales({ ...balancesIniciales, [c.id]: e.target.value })} style={{ padding: "6px 10px", fontSize: 13, textAlign: "right" }} />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* SECCIÓN 2: AGREGAR NUEVAS SUBCATEGORÍAS */}
+      <Card style={{ border: `1px solid ${B.azulMedio}55` }}>
+        <Lbl style={{ color: B.celeste }}>CREAR NUEVAS SUBCATEGORÍAS</Lbl>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+          <Inp placeholder="Nombre de la subcategoría..." value={nuevaCat} onChange={(e) => setNuevaCat(e.target.value)} />
+          <Sel value={cuentaSeleccionada} onChange={(e) => setCuentaSeleccionada(e.target.value)}>
+            {CUENTAS.map(c => (
+              <option key={c.id} value={c.id}>{c.emoji} {c.nombre}</option>
+            ))}
+          </Sel>
+          <Btn onClick={agregarCategoria}>+ Insertar Subcategoría</Btn>
+        </div>
+
+        <Lbl style={{ marginTop: 14 }}>SUBCATEGORÍAS ACTIVAS EN EL FLUJO</Lbl>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 240, overflowY: "auto" }}>
+          {todasCats.map((c) => {
+            const cuentaAsociada = CUENTAS.find(cu => cu.id === c.cuenta);
+            return (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#091424", padding: "8px 12px", borderRadius: 10 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color }} />
+                <span style={{ flex: 1, fontSize: 14, color: B.texto }}>{c.nombre}</span>
+                <span style={{ fontSize: 11, color: B.textoSub, background: `${c.color}15`, padding: "2px 8px", borderRadius: 6 }}>
+                  {cuentaAsociada ? cuentaAsociada.nombre : c.cuenta}
+                </span>
+                <button onClick={() => eliminarCategoria(c.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 18, cursor: "pointer", padding: "0 4px" }}>×</button>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ─── PESTAÑA HISTORIAL DE CIERRES ───────────────────────────────────────────
+function Historial({ registros = [] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <Lbl>HISTORIAL COMPLETO DE PROCESAMIENTOS</Lbl>
+      {registros.length === 0 && <div style={{ fontSize: 13, color: B.textoSub, textAlign: "center", padding: 30 }}>No hay cierres distribuidos cargados en memoria.</div>}
+      {registros.map((r) => (
+        <Card key={r.id}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: B.textoSub, fontWeight: 700 }}><span>CIERRE DIARIO</span><span>{r.fecha}</span></div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: B.celeste, margin: "6px 0" }}>{fmt(r.ingreso)}</div>
+          <div style={{ fontSize: 11, color: B.texto, opacity: 0.85, lineHeight: 1.4 }}>{r.items?.map(it => `${it.cat}: $${it.monto}`).join(" | ")}</div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─── CONTENEDOR MAESTRO DE LA APLICACIÓN (APP) ────────────────────────────────
+export default function App() {
+  const [tab, setTab] = useState("inicio");
+  const [registros, setRegistros] = useStore("ar_v3_registros", []);
+  const [pagos, setPagos] = useStore("ar_v3_pagos", INITIAL_PAGOS);
+  const [balancesIniciales, setBalancesIniciales] = useStore("ar_v3_balances", INITIAL_BALANCES);
+  
+  // Estado dinámico para categorías persistido en LocalStorage
+  const [todasCats, setTodasCats] = useStore("ar_v3_categorias", INITIAL_CATS);
+
+  return (
+    <div style={{ backgroundColor: B.fondo, color: B.texto, minHeight: "100vh", paddingBottom: 110, boxSizing: "border-box", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+      
+      {/* HEADER DE MARCA */}
+      <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 14, background: B.fondoCard, borderBottom: `1px solid ${B.fondoBorde}` }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: B.azulOscuro, display: "flex", justifyContent: "center", alignItems: "center", fontSize: 20 }}>💧</div>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, letterSpacing: 0.5 }}>Agua Ruth</h1>
+          <p style={{ margin: 0, fontSize: 11, color: B.textoSub, textTransform: "uppercase", letterSpacing: 1 }}>Control de Flujos</p>
+        </div>
+      </div>
+
+      {/* RENDER DE VISTAS */}
+      <div style={{ padding: "16px 20px" }}>
+        {tab === "inicio" && <Dashboard registros={registros} pagos={pagos} todasCats={todasCats} balancesIniciales={balancesIniciales} />}
+        {tab === "distribuir" && <Distribucion onGuardar={(r) => { setRegistros([r, ...registros]); setTab("inicio"); }} todasCats={todasCats} />}
+        {tab === "presupuesto" && <Pagos pagos={pagos} setPagos={setPagos} />}
+        {tab === "cuentas" && <CuentasConfig balancesIniciales={balancesIniciales} setBalancesIniciales={setBalancesIniciales} todasCats={todasCats} setTodasCats={setTodasCats} />}
+        {tab === "historial" && <Historial registros={registros} />}
+      </div>
+
+      {/* NAV BAR FLOTANTE ELEVADA CONTRA BLOQUEOS */}
+      <div style={{
+        position: "fixed",
+        bottom: "24px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "calc(100% - 32px)",
+        maxWidth: "400px",
+        height: 68,
+        backgroundColor: "rgba(12, 24, 40, 0.96)",
+        backdropFilter: "blur(10px)",
+        borderRadius: 22,
+        border: `1px solid ${B.fondoBorde}`,
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        alignItems: "center",
+        zIndex: 9999,
+        boxShadow: "0 15px 35px rgba(0,0,0,0.6)"
+      }}>
+        <button onClick={() => setTab("inicio")} style={{ background: "transparent", border: "none", color: tab === "inicio" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
+          <span style={{ fontSize: 18 }}>📊</span> Inicio
+        </button>
+        <button onClick={() => setTab("distribuir")} style={{ background: "transparent", border: "none", color: tab === "distribuir" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
+          <span style={{ fontSize: 18 }}>💸</span> Distribuir
+        </button>
+        <button onClick={() => setTab("presupuesto")} style={{ background: "transparent", border: "none", color: tab === "presupuesto" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", gap: 3, cursor: "pointer" }}>
+          <span style={{ fontSize: 18 }}>📋</span> Pagos
+        </button>
+        <button onClick={() => setTab("cuentas")} style={{ background: "transparent", border: "none", color: tab === "cuentas" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", gap: 3, cursor: "pointer" }}>
+          <span style={{ fontSize: 18 }}>💳</span> Fondos
+        </button>
+        <button onClick={() => setTab("historial")} style={{ background: "transparent", border: "none", color: tab === "historial" ? B.textoSub : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", gap: 3, cursor: "pointer" }}>
+          <span style={{ fontSize: 18 }}>⏳</span> Cierres
+        </button>
+      </div>
+
+    </div>
+  );
+}
