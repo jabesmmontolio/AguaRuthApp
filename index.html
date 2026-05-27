@@ -671,7 +671,7 @@
       };
 
       const eliminarSubcategoria = (id) => {
-        if (confirm("¿Estás seguro de eliminar esta subcategoría? Dejará de salir en tus formularios futuros.")) {
+        if (confirm("¿Estás seguro de eliminar esta subcategoría?")) {
           setTodasCats(todasCats.filter(c => c.id !== id));
         }
       };
