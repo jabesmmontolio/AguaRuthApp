@@ -52,9 +52,9 @@
 
     // ─── ESTRUCTURA DE LAS 6 CUENTAS FIJAS DE LA EMPRESA ─────────────────────────
     const CUENTAS = [
-      { id: "inversiones", nombre: "Inversiones", emoji: "📈", color: "#22C55E", num: "0071079263" },
       { id: "general", nombre: "General", emoji: "🏦", color: "#4EA5E0", num: "0071074923" },
       { id: "nomina", nombre: "Nómina Empleados", emoji: "👥", color: "#70CCE1", num: "0071078372" },
+      { id: "inversiones", nombre: "Inversiones", emoji: "📈", color: "#22C55E", num: "0071079263" },
       { id: "emergencia", nombre: "Fondo Emergencia", emoji: "🛡️", color: "#F59E0B", num: "0071079273" },
       { id: "prestamo", nombre: "Préstamo Reservas", emoji: "🏛️", color: "#A78BFA", num: "0071079283" },
       { id: "insumos", nombre: "Insumos", emoji: "⚙️", color: "#FB923C", num: "0071074293" },
@@ -693,7 +693,8 @@
                     <span style={{ fontSize: 13, color: B.texto, fontWeight: 600 }}>{c.nombre}</span>
                   </div>
                   <Inp 
-                    type="number" 
+                    type="number"
+                    inputMode="decimal"
                     placeholder="RD$ 0.00" 
                     value={balancesIniciales[c.id] || ""} 
                     onChange={(e) => handleBalanceChange(c.id, e.target.value)}
