@@ -88,12 +88,12 @@
 
     // ─── SUBCATEGORÍAS ENVIADAS POR EL USUARIO (ORGANIZADAS POR CUENTA) ──────────
     const INITIAL_CATS = [
-      { id: "n1", nombre: "Primera Quincena", cuenta: "nomina", color: "#70CCE1" },
-      { id: "n2", nombre: "Segunda Quincena", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n1", nombre: "1ra Quincena", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n2", nombre: "2da Quincena", cuenta: "nomina", color: "#70CCE1" },
       { id: "n3", nombre: "Bonificaciones", cuenta: "nomina", color: "#70CCE1" },
       { id: "n4", nombre: "Incentivos", cuenta: "nomina", color: "#70CCE1" },
       { id: "n5", nombre: "Horas Extras", cuenta: "nomina", color: "#70CCE1" },
-      { id: "n6", nombre: "Feriados", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n6", nombre: "Dias Feriados", cuenta: "nomina", color: "#70CCE1" },
       { id: "n7", nombre: "Fondo Contratación por Vacaciones", cuenta: "nomina", color: "#70CCE1" },
       { id: "n8", nombre: "Fondo Salario de Navidad", cuenta: "nomina", color: "#70CCE1" },
       { id: "n9", nombre: "Hold/Fondo", cuenta: "nomina", color: "#70CCE1" },
@@ -104,25 +104,22 @@
       { id: "i4", nombre: "Etiquetas", cuenta: "inversiones", color: "#22C55E" },
       { id: "i5", nombre: "Exhibidores", cuenta: "inversiones", color: "#22C55E" },
       { id: "i6", nombre: "Marketing", cuenta: "inversiones", color: "#22C55E" },
-      { id: "i7", nombre: "Computadora", cuenta: "inversiones", color: "#22C55E" },
-      { id: "i8", nombre: "Alquiler Camioncito", cuenta: "inversiones", color: "#22C55E" },
-      { id: "i9", nombre: "Pintura Exhibidores", cuenta: "inversiones", color: "#22C55E" },
-      { id: "i10", nombre: "Ganancia", cuenta: "inversiones", color: "#22C55E" },
-      { id: "i11", nombre: "Hold/Fondo", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i7", nombre: "Alquiler Camioncito", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i8", nombre: "Pintura Exhibidores", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i9", nombre: "Ganancia", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i10", nombre: "Hold/Fondo", cuenta: "inversiones", color: "#22C55E" },
 
       { id: "e1", nombre: "Imprevistos", cuenta: "emergencia", color: "#F59E0B" },
       { id: "e2", nombre: "Reparaciones de Motores", cuenta: "emergencia", color: "#F59E0B" },
-      { id: "e3", nombre: "Caja Chica", cuenta: "emergencia", color: "#F59E0B" },
+      { id: "e3", nombre: "Reparaciones de Maquinarias", cuenta: "emergencia", color: "#F59E0B" },
       { id: "e4", nombre: "Hold/Fondo", cuenta: "emergencia", color: "#F59E0B" },
 
       { id: "pr1", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
-      { id: "pr2", nombre: "Acuerdo de Pago/TSS", cuenta: "prestamo", color: "#A78BFA" },
-      { id: "pr3", nombre: "Préstamo Coop", cuenta: "prestamo", color: "#A78BFA" },
-      { id: "pr4", nombre: "Fondo Abono Préstamo", cuenta: "prestamo", color: "#A78BFA" },
-      { id: "pr5", nombre: "Dalfy Prestaciones Laborales", cuenta: "prestamo", color: "#A78BFA" },
-      { id: "pr6", nombre: "Hold/Fondo", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr2", nombre: "Préstamo Coop", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr3", nombre: "Fondo Abono Préstamo", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr4", nombre: "Hold/Fondo", cuenta: "prestamo", color: "#A78BFA" },
 
-      { id: "in1", nombre: "Aceite de Motor", cuenta: "insumos", color: "#FB923C" },
+      { id: "in1", nombre: "Aceite de Motores", cuenta: "insumos", color: "#FB923C" },
       { id: "in2", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
       { id: "in3", nombre: "Sal", cuenta: "insumos", color: "#FB923C" },
       { id: "in4", nombre: "Cloro", cuenta: "insumos", color: "#FB923C" },
@@ -131,12 +128,12 @@
       { id: "in7", nombre: "Imprevistos", cuenta: "insumos", color: "#FB923C" },
       { id: "in8", nombre: "Hold/Fondo", cuenta: "insumos", color: "#FB923C" },
 
-      { id: "g1", nombre: "Luz", cuenta: "general", color: "#4EA5E0" },
+      { id: "g1", nombre: "Electricidad", cuenta: "general", color: "#4EA5E0" },
       { id: "g2", nombre: "Agua", cuenta: "general", color: "#4EA5E0" },
       { id: "g3", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
       { id: "g4", nombre: "Basura", cuenta: "general", color: "#4EA5E0" },
       { id: "g5", nombre: "Local", cuenta: "general", color: "#4EA5E0" },
-      { id: "g6", nombre: "Seguro", cuenta: "general", color: "#4EA5E0" },
+      { id: "g6", nombre: "Seguro/TSS", cuenta: "general", color: "#4EA5E0" },
       { id: "g7", nombre: "Infotep", cuenta: "general", color: "#4EA5E0" },
       { id: "g8", nombre: "Hold/Fondo", cuenta: "general", color: "#4EA5E0" }
     ];
@@ -144,10 +141,11 @@
     // TEMPLATE INICIAL DE PRESUPUESTO
     const INITIAL_PAGOS = [
       { id: "p1", semana: 1, nombre: "Teléfono e Internet", monto: 2500, cuenta: "general", ok: false },
-      { id: "p2", semana: 1, nombre: "Agua", monto: 286, cuenta: "general", ok: false },
-      { id: "p3", semana: 1, nombre: "Gasolina", monto: 8025, cuenta: "insumos", ok: false },
+      { id: "p2", semana: 1, nombre: "Agua", monto: 290, cuenta: "general", ok: false },
+      { id: "p3", semana: 1, nombre: "Gasolina", monto: 9500, cuenta: "insumos", ok: false },
       { id: "p4", semana: 1, nombre: "TSS / Seguro", monto: 3700, cuenta: "general", ok: false },
-      { id: "p7", semana: 1, nombre: "Electricidad", monto: 10903, cuenta: "general", ok: false },
+      { id: "p5", semana: 1, nombre: "Electricidad", monto: 12000, cuenta: "general", ok: false }, 
+      { id: "p6", semana: 1, nombre: "Basura", monto: 12000, cuenta: "general", ok: false },
       
       { id: "p8_1", semana: 2, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
       { id: "p8_2", semana: 2, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
@@ -161,7 +159,7 @@
 
       { id: "p15", semana: 3, nombre: "Préstamo Coop", monto: 15000, cuenta: "prestamo", ok: false },
       { id: "p16", semana: 3, nombre: "Alquiler Local", monto: 13680, cuenta: "general", ok: false },
-      { id: "p17", semana: 3, nombre: "Préstamo Reservas", monto: 32200, cuenta: "prestamo", ok: false },
+      { id: "p17", semana: 3, nombre: "Préstamo Reservas", monto: 32300, cuenta: "prestamo", ok: false },
 
       { id: "p18_1", semana: 4, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
       { id: "p18_2", semana: 4, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
