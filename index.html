@@ -21,6 +21,14 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+    /* Scrollbar minimalista para listas largas en iPhone */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #152233;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -68,25 +76,68 @@
       { val: "2026-12", label: "Diciembre 2026" },
     ];
 
-    // SUBCATEGORÍAS LIMPIAS INICIALES (SIN EMOJIS INTERNOS)
+    // ─── SUBCATEGORÍAS ENVIADAS POR EL USUARIO (ORGANIZADAS POR CUENTA) ──────────
     const INITIAL_CATS = [
-      { id: "1", nombre: "Ganancia", cuenta: "inversiones", color: "#22C55E" },
-      { id: "2", nombre: "Botellones", cuenta: "inversiones", color: "#4ADE80" },
-      { id: "3", nombre: "Tapas", cuenta: "inversiones", color: "#16A34A" },
-      { id: "4", nombre: "Sellos", cuenta: "inversiones", color: "#15803D" },
-      { id: "5", nombre: "Etiquetas", cuenta: "inversiones", color: "#86EFAC" },
-      { id: "6", nombre: "Electricidad", cuenta: "general", color: "#F59E0B" },
-      { id: "7", nombre: "Agua", cuenta: "general", color: "#70CCE1" },
-      { id: "8", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
-      { id: "9", nombre: "Alquiler Local", cuenta: "general", color: "#A78BFA" },
-      { id: "10", nombre: "Nómina", cuenta: "nomina", color: "#70CCE1" },
-      { id: "11", nombre: "Fondo de Emergencia", cuenta: "emergencia", color: "#F59E0B" },
-      { id: "12", nombre: "Reparaciones", cuenta: "emergencia", color: "#FB923C" },
-      { id: "13", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
-      { id: "14", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
+      // Cuenta Nómina Empleados
+      { id: "n1", nombre: "Primera Quincena", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n2", nombre: "Segunda Quincena", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n3", nombre: "Bonificaciones", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n4", nombre: "Incentivos", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n5", nombre: "Horas Extras", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n6", nombre: "Feriados", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n7", nombre: "Fondo Contratación por Vacaciones", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n8", nombre: "Fondo Salario de Navidad", cuenta: "nomina", color: "#70CCE1" },
+      { id: "n9", nombre: "Hold/Fondo", cuenta: "nomina", color: "#70CCE1" },
+
+      // Cuenta Inversiones
+      { id: "i1", nombre: "Botellones", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i2", nickname: "Tapas", nombre: "Tapas", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i3", nombre: "Sellos", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i4", nombre: "Etiquetas", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i5", nombre: "Exhibidores", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i6", nombre: "Marketing", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i7", nombre: "Computadora", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i8", nombre: "Alquiler Camioncito", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i9", nombre: "Pintura Exhibidores", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i10", nombre: "Ganancia", cuenta: "inversiones", color: "#22C55E" },
+      { id: "i11", nombre: "Hold/Fondo", cuenta: "inversiones", color: "#22C55E" },
+
+      // Cuenta Fondo de Emergencia
+      { id: "e1", nombre: "Imprevistos", cuenta: "emergencia", color: "#F59E0B" },
+      { id: "e2", nombre: "Reparaciones de Motores", cuenta: "emergencia", color: "#F59E0B" },
+      { id: "e3", nombre: "Caja Chica", cuenta: "emergencia", color: "#F59E0B" },
+      { id: "e4", nombre: "Hold/Fondo", cuenta: "emergencia", color: "#F59E0B" },
+
+      // Cuenta Préstamo Reservas
+      { id: "pr1", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr2", nombre: "Acuerdo de Pago/TSS", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr3", nombre: "Préstamo Coop", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr4", nombre: "Fondo Abono Préstamo", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr5", nombre: "Dalfy Prestaciones Laborales", cuenta: "prestamo", color: "#A78BFA" },
+      { id: "pr6", nombre: "Hold/Fondo", cuenta: "prestamo", color: "#A78BFA" },
+
+      // Cuenta Insumos
+      { id: "in1", nombre: "Aceite de Motor", cuenta: "insumos", color: "#FB923C" },
+      { id: "in2", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
+      { id: "in3", nombre: "Sal", cuenta: "insumos", color: "#FB923C" },
+      { id: "in4", nombre: "Cloro", cuenta: "insumos", color: "#FB923C" },
+      { id: "in5", nombre: "Detergente", cuenta: "insumos", color: "#FB923C" },
+      { id: "in6", nombre: "Guantes y Mascarillas", cuenta: "insumos", color: "#FB923C" },
+      { id: "in7", nombre: "Imprevistos", cuenta: "insumos", color: "#FB923C" },
+      { id: "in8", nombre: "Hold/Fondo", cuenta: "insumos", color: "#FB923C" },
+
+      // Cuenta Agua Ruth/General
+      { id: "g1", nombre: "Luz", cuenta: "general", color: "#4EA5E0" },
+      { id: "g2", nombre: "Agua", cuenta: "general", color: "#4EA5E0" },
+      { id: "g3", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
+      { id: "g4", nombre: "Basura", cuenta: "general", color: "#4EA5E0" },
+      { id: "g5", nombre: "Local", cuenta: "general", color: "#4EA5E0" },
+      { id: "g6", nombre: "Seguro", cuenta: "general", color: "#4EA5E0" },
+      { id: "g7", nombre: "Infotep", cuenta: "general", color: "#4EA5E0" },
+      { id: "g8", nombre: "Hold/Fondo", cuenta: "general", color: "#4EA5E0" }
     ];
 
-    // ESTRUCTURA DE PRESUPUESTO ASIGNADA A CADA CUENTA ORIGEN PARA DEDUCCIÓN AUTOMÁTICA
+    // ESTRUCTURA DE PRESUPUESTO ASIGNADA A CADA CUENTA ORIGEN
     const INITIAL_PAGOS = [
       { id: "p1", semana: 1, nombre: "Teléfono e Internet", monto: 2500, cuenta: "general", ok: false },
       { id: "p2", semana: 1, nombre: "Agua", monto: 286, cuenta: "general", ok: false },
@@ -103,7 +154,7 @@
       { id: "p8_6", semana: 2, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
       { id: "p8_7", semana: 2, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
       { id: "p8_8", semana: 2, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
-      { id: "p8_9", semana: 2, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
+      { id: "p8_9", semana: 2, fontValue: 750, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
 
       // SEMANA 3 - COMPROMISOS FINANCIEROS
       { id: "p15", semana: 3, nombre: "Préstamo Coop", monto: 15000, cuenta: "prestamo", ok: false },
@@ -116,7 +167,7 @@
       { id: "p18_3", semana: 4, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
       { id: "p18_4", semana: 4, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
       { id: "p18_5", semana: 4, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
-      { id: "p18_6", semana: 4, fontW: 700, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
+      { id: "p18_6", semana: 4, fontValue: 7500, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
       { id: "p18_7", semana: 4, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
       { id: "p18_8", semana: 4, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
       { id: "p18_9", semana: 4, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
@@ -143,6 +194,18 @@
       return [v, set];
     }
 
+    // ─── COMPONENTE CONTROLADOR DE ICONOS/EMOJIS PERSONALIZADOS ──────────────────
+    function IconoCustom({ source, size = 18 }) {
+      if (!source) return null;
+      if (source.startsWith("http")) {
+        return <img src={source} style={{ width: size, height: size, objectFit: "contain" }} alt="icon" />;
+      }
+      if (source.trim().startsWith("<svg")) {
+        return <div style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }} dangerouslySetInnerHTML={{ __html: source }} />;
+      }
+      return <span style={{ fontSize: size }}>{source}</span>;
+    }
+
     // ─── COMPONENTES ESTILOS COMPACTOS CON BOX-SIZING PROTEGIDO ─────────────────
     function Card({ children, style = {}, glow = false }) {
       return (
@@ -164,7 +227,7 @@
       const vs = {
         primary: { background: `linear-gradient(135deg,${B.azulOscuro},${B.azulMedio})`, color: "#fff", border: "none" },
         ghost: { background: "transparent", color: B.celeste, border: `1px solid ${B.celeste}44` },
-        danger: { background: "transparent", color: "#EF4444", border: "1px solid #EF444440" },
+        danger: { background: `linear-gradient(135deg, #DC2626, #EF4444)`, color: "#fff", border: "none" },
       };
       return (
         <button onClick={onClick} disabled={disabled} style={{ ...vs[v], borderRadius: 14, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: "100%", boxSizing: "border-box", ...style }}>
@@ -273,7 +336,7 @@
             {CUENTAS.map((c) => (
               <div key={c.id} style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 18 }}>{c.emoji}</span>
+                  <IconoCustom source={c.emoji} size={18} />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{c.nombre}</div>
                     <div style={{ fontSize: 10, color: B.textoSub }}>No. {c.num}</div>
@@ -305,7 +368,7 @@
       const rem = (i) => setItems(items.filter((_, x) => x !== i));
 
       const guardar = () => {
-        if (!fecha || totalIng === 0 || diff !== 0) return;
+        if (!fecha || totalIng === 0 || Math.abs(diff) > 0.01) return;
         onGuardar({
           id: Date.now(),
           fecha,
@@ -334,7 +397,7 @@
                 <Sel value={it.cat} onChange={(e) => upd(i, "cat", e.target.value)} style={{ flex: 2 }}>
                   <option value="">Concepto...</option>
                   {CUENTAS.map((cu) => (
-                    <optgroup key={cu.id} label={`${cu.emoji} ${cu.nombre}`}>
+                    <optgroup key={cu.id} label={`${cu.nombre}`}>
                       {todasCats.filter((c) => c.cuenta === cu.id).map((c) => (
                         <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
                       ))}
@@ -346,12 +409,12 @@
               </div>
             ))}
             {totalIng > 0 && (
-              <div style={{ fontSize: 13, color: diff === 0 ? "#22C55E" : diff > 0 ? "#F59E0B" : "#EF4444", fontWeight: 600, marginTop: 8 }}>
-                {diff === 0 ? "✓ Distribución Cuadrada" : diff > 0 ? `Por asignar: ${fmt(diff)}` : `Excedido: ${fmt(Math.abs(diff))}`}
+              <div style={{ fontSize: 13, color: Math.abs(diff) < 0.01 ? "#22C55E" : diff > 0 ? "#F59E0B" : "#EF4444", fontWeight: 600, marginTop: 8 }}>
+                {Math.abs(diff) < 0.01 ? "✓ Distribución Cuadrada" : diff > 0 ? `Por asignar: ${fmt(diff)}` : `Excedido: ${fmt(Math.abs(diff))}`}
               </div>
             )}
           </Card>
-          <Btn onClick={guardar} disabled={totalIng === 0 || diff !== 0}>💾 Procesar Distribución</Btn>
+          <Btn onClick={guardar} disabled={totalIng === 0 || Math.abs(diff) > 0.01}>💾 Procesar Distribución</Btn>
         </div>
       );
     }
@@ -449,78 +512,245 @@
       );
     }
 
-    // ─── PESTAÑA CUENTAS: BALANCES + GESTIÓN DE SUBCATEGORÍAS DINÁMICAS ──────────
-    function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, setTodasCats }) {
-      const [nuevaCat, setNuevaCat] = useState("");
-      const [cuentaSeleccionada, setCuentaSeleccionada] = useState("general");
+    // ─── PESTAÑA HISTORIAL: GESTIÓN DIRECTA DE DISTRIBUCIONES ANTERIORES ───
+    function Historial({ registros = [], setRegistros, todasCats = [] }) {
+      const [editId, setEditId] = useState(null);
+      const [editFecha, setEditFecha] = useState("");
+      const [editIngreso, setEditIngreso] = useState("");
+      const [editItems, setEditItems] = useState([]);
 
-      const agregarCategoria = () => {
-        if (!nuevaCat.trim()) return;
+      const comenzarEdicion = (reg) => {
+        setEditId(reg.id);
+        setEditFecha(reg.fecha);
+        setEditIngreso(reg.ingreso);
+        setEditItems([...reg.items]);
+      };
+
+      const guardarEdicion = () => {
+        const totalBruto = parseFloat(editIngreso) || 0;
+        const totalDist = editItems.reduce((acc, current) => acc + (parseFloat(current.monto) || 0), 0);
         
-        // Obtener color estructural de la cuenta para mantener sincronía de marca
-        const cuentaObj = CUENTAS.find(c => c.id === cuentaSeleccionada);
-        const colorCat = cuentaObj ? cuentaObj.color : "#4EA5E0";
+        if (Math.abs(totalBruto - totalDist) > 0.02) {
+          alert(`Error: La distribución no está cuadrada.\nIngreso Bruto: ${fmt(totalBruto)}\nSuma: ${fmt(totalDist)}`);
+          return;
+        }
 
-        const nueva = {
-          id: Date.now().toString(),
-          nombre: nuevaCat.trim(), // Nombre limpio sin emojis integrados
-          cuenta: cuentaSeleccionada,
-          color: colorCat
-        };
-
-        setTodasCats([...todasCats, nueva]);
-        setNuevaCat("");
+        setRegistros(registros.map(r => r.id === editId ? {
+          ...r,
+          fecha: editFecha,
+          ingreso: totalBruto,
+          items: editItems.filter(i => i.cat && i.monto).map(i => ({ ...i, monto: parseFloat(i.monto) || 0 }))
+        } : r));
+        setEditId(null);
       };
 
-      const eliminarCategoria = (id) => {
-        setTodasCats(todasCats.filter(c => c.id !== id));
+      const eliminarRegistro = (id) => {
+        if (confirm("¿Estás seguro de que deseas eliminar esta distribución? Esto afectará los balances en tiempo real.")) {
+          setRegistros(registros.filter(r => r.id !== id));
+        }
       };
+
+      const updItem = (index, field, value) => {
+        const copy = [...editItems];
+        copy[index][field] = value;
+        setEditItems(copy);
+      };
+
+      const addItem = () => setEditItems([...editItems, { cat: "", monto: "" }]);
+      const remItem = (index) => setEditItems(editItems.filter((_, idx) => idx !== index));
 
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Cuentas del Sistema</div>
-            <div style={{ fontSize: 12, color: B.textoSub }}>Inyección de balances y estructuración</div>
-          </div>
+          <Lbl>HISTORIAL DE DISTRIBUCIONES</Lbl>
           
-          {/* SECCIÓN 1: BALANCES LÍQUIDOS */}
-          <Card style={{ border: `1px solid ${B.azulOscuro}55` }}>
-            <Lbl style={{ color: B.celeste }}>FIJAR BALANCES DE ENTRADA</Lbl>
+          {editId && (
+            <Card style={{ border: `1px solid ${B.celeste}` }}>
+              <Lbl style={{ color: B.celeste }}>EDITAR REGISTRO CONTABLE</Lbl>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
+                <div>
+                  <Lbl>Fecha</Lbl>
+                  <Inp type="date" value={editFecha} onChange={(e) => setEditFecha(e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Ingreso Bruto</Lbl>
+                  <Inp type="number" value={editIngreso} onChange={(e) => setEditIngreso(e.target.value)} />
+                </div>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <Lbl style={{ marginBottom: 0 }}>Filas Distribuidas</Lbl>
+                    <button onClick={addItem} style={{ background: `${B.azulOscuro}33`, border: `1px solid ${B.azulOscuro}`, color: B.celeste, borderRadius: 6, padding: "2px 8px", fontSize: 11 }}>+ Fila</button>
+                  </div>
+                  {editItems.map((it, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: 4, alignItems: "center", marginBottom: 6 }}>
+                      <Sel value={it.cat} onChange={(e) => updItem(idx, "cat", e.target.value)} style={{ flex: 2, padding: "6px 10px", fontSize: 13 }}>
+                        <option value="">Seleccionar...</option>
+                        {CUENTAS.map((cu) => (
+                          <optgroup key={cu.id} label={cu.nombre}>
+                            {todasCats.filter((c) => c.cuenta === cu.id).map((c) => (
+                              <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </Sel>
+                      <Inp type="number" value={it.monto} onChange={(e) => updItem(idx, "monto", e.target.value)} style={{ flex: 1.5, padding: "6px 10px", fontSize: 13 }} />
+                      <button onClick={() => remItem(idx)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 18 }}>×</button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <Btn onClick={guardarEdicion} style={{ padding: 10, fontSize: 13 }}>✓ Guardar Cambios</Btn>
+                  <Btn onClick={() => setEditId(null)} v="ghost" style={{ padding: 10, fontSize: 13 }}>Cancelar</Btn>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {registros.length === 0 && (
+              <div style={{ color: B.textoSub, textAlign: "center", padding: 20, fontSize: 14 }}>No hay registros en memoria.</div>
+            )}
+            {[...registros].reverse().map((r) => (
+              <Card key={r.id} style={{ padding: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <div>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{r.fecha}</span>
+                    <div style={{ fontSize: 11, color: B.textoSub, marginTop: 2 }}>Monto Bruto: <span style={{ color: B.celeste, fontWeight: 600 }}>{fmt(r.ingreso)}</span></div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => comenzarEdicion(r)} style={{ background: "transparent", border: "none", color: B.celeste, fontSize: 14, cursor: "pointer" }}>✏️</button>
+                    <button onClick={() => eliminarRegistro(r.id)} style={{ background: "transparent", border: "none", color: "#DC2626", fontSize: 14, cursor: "pointer" }}>🗑️</button>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, background: "#06111F", padding: 8, borderRadius: 10 }}>
+                  {r.items.map((it, idx) => (
+                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                      <span style={{ color: B.texto }}>• {it.cat}</span>
+                      <span style={{ color: B.textoSub, fontWeight: 600 }}>{fmt(it.monto)}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ─── NUEVA PESTAÑA SEPARADA: GESTIÓN DE CUENTAS (BALANCES Y SUBCATEGORÍAS) ───
+    function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, setTodasCats }) {
+      const [nuevaSubcat, setNuevaSubcat] = useState("");
+      const [cuentaSeleccionada, setCuentaSeleccionada] = useState("general");
+
+      const handleBalanceChange = (cuentaId, valor) => {
+        setBalancesIniciales({
+          ...balancesIniciales,
+          [cuentaId]: parseFloat(valor) || 0
+        });
+      };
+
+      const agregarSubcategoria = () => {
+        if (!nuevaSubcat.trim()) return;
+        
+        if (todasCats.some(c => c.nombre.toLowerCase() === nuevaSubcat.trim().toLowerCase())) {
+          alert("Ya existe una subcategoría con este mismo nombre.");
+          return;
+        }
+
+        const cuentaObj = CUENTAS.find(c => c.id === cuentaSeleccionada);
+        const nueva = {
+          id: "sub_" + Date.now(),
+          nombre: nuevaSubcat.trim(),
+          cuenta: cuentaSeleccionada,
+          color: cuentaObj ? cuentaObj.color : "#4EA5E0"
+        };
+
+        setTodasCats([...todasCats, nueva]);
+        setNuevaSubcat("");
+      };
+
+      const eliminarSubcategoria = (id) => {
+        if (confirm("¿Estás seguro de eliminar esta subcategoría? Dejará de salir en tus formularios futuros.")) {
+          setTodasCats(todasCats.filter(c => c.id !== id));
+        }
+      };
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Panel de Cuentas</div>
+            <div style={{ fontSize: 12, color: B.textoSub }}>Escribe balances iniciales del mes y agrega subcategorías</div>
+          </div>
+
+          {/* EDITAR BALANCES INICIALES */}
+          <Card glow>
+            <Lbl style={{ color: B.celeste }}>BALANCES INICIALES DEL MES</Lbl>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {CUENTAS.map((c) => (
-                <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", alignItems: "center", background: "#091424", padding: "8px 14px", borderRadius: 12 }}>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>{c.emoji} {c.nombre}</span>
-                  <Inp type="number" placeholder="0.00" value={balancesIniciales[c.id] || ""} onChange={(e) => setBalancesIniciales({ ...balancesIniciales, [c.id]: e.target.value })} style={{ padding: "6px 10px", fontSize: 13, textAlign: "right" }} />
+                <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <IconoCustom source={c.emoji} size={14} />
+                    <span style={{ fontSize: 13, color: B.texto, fontWeight: 600 }}>{c.nombre}</span>
+                  </div>
+                  <Inp 
+                    type="number" 
+                    placeholder="RD$ 0.00" 
+                    value={balancesIniciales[c.id] || ""} 
+                    onChange={(e) => handleBalanceChange(c.id, e.target.value)}
+                    style={{ padding: "8px 12px", fontSize: 13, textAlign: "right" }}
+                  />
                 </div>
               ))}
             </div>
           </Card>
 
-          {/* SECCIÓN 2: AGREGAR NUEVAS SUBCATEGORÍAS */}
-          <Card style={{ border: `1px solid ${B.azulMedio}55` }}>
-            <Lbl style={{ color: B.celeste }}>CREAR NUEVAS SUBCATEGORÍAS</Lbl>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-              <Inp placeholder="Nombre de la subcategoría..." value={nuevaCat} onChange={(e) => setNuevaCat(e.target.value)} />
-              <Sel value={cuentaSeleccionada} onChange={(e) => setCuentaSeleccionada(e.target.value)}>
-                {CUENTAS.map(c => (
-                  <option key={c.id} value={c.id}>{c.emoji} {c.nombre}</option>
-                ))}
-              </Sel>
-              <Btn onClick={agregarCategoria}>+ Insertar Subcategoría</Btn>
+          {/* CREAR NUEVA SUBCATEGORÍA */}
+          <Card>
+            <Lbl>CREAR NUEVA SUBCATEGORÍA</Lbl>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 6 }}>
+                <Inp 
+                  placeholder="Ej: Gasoil Extra" 
+                  value={nuevaSubcat} 
+                  onChange={(e) => setNuevaSubcat(e.target.value)} 
+                  style={{ fontSize: 13, padding: "8px 12px" }}
+                />
+                <Sel 
+                  value={cuentaSeleccionada} 
+                  onChange={(e) => setCuentaSeleccionada(e.target.value)}
+                  style={{ fontSize: 13, padding: "8px 12px" }}
+                >
+                  {CUENTAS.map(c => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
+                </Sel>
+              </div>
+              <Btn onClick={agregarSubcategoria} style={{ padding: "10px", fontSize: 13 }}>＋ Agregar Subcategoría</Btn>
             </div>
+          </Card>
 
-            <Lbl style={{ marginTop: 14 }}>SUBCATEGORÍAS ACTIVAS EN EL FLUJO</Lbl>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 240, overflowY: "auto" }}>
-              {todasCats.map((c) => {
-                const cuentaAsociada = CUENTAS.find(cu => cu.id === c.cuenta);
+          {/* LISTADO DINÁMICO DE SUBCATEGORÍAS */}
+          <Card>
+            <Lbl>SUBCATEGORÍAS CONFIGURADAS</Lbl>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 260, overflowY: "auto" }}>
+              {CUENTAS.map((cu) => {
+                const subCatsCuenta = todasCats.filter(c => c.cuenta === cu.id);
                 return (
-                  <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#091424", padding: "8px 12px", borderRadius: 10 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color }} />
-                    <span style={{ flex: 1, fontSize: 14, color: B.texto }}>{c.nombre}</span>
-                    <span style={{ fontSize: 11, color: B.textoSub, background: `${c.color}15`, padding: "2px 8px", borderRadius: 6 }}>
-                      {cuentaAsociada ? cuentaAsociada.nombre : c.cuenta}
-                    </span>
-                    <button onClick={() => eliminarCategoria(c.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 18, cursor: "pointer", padding: "0 4px" }}>×</button>
+                  <div key={cu.id} style={{ borderBottom: `1px solid ${B.fondoBorde}44`, paddingBottom: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: cu.color, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                      <IconoCustom source={cu.emoji} size={11} /> {cu.nombre.toUpperCase()}
+                    </div>
+                    {subCatsCuenta.length === 0 ? (
+                      <div style={{ fontSize: 12, color: B.textoSub, paddingLeft: 6 }}>Sin subcategorías registradas.</div>
+                    ) : (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingLeft: 4 }}>
+                        {subCatsCuenta.map(c => (
+                          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 4, background: "#091424", border: `1px solid ${B.fondoBorde}`, borderRadius: 8, padding: "4px 8px", fontSize: 12, color: B.texto }}>
+                            <span>{c.nombre}</span>
+                            <button onClick={() => eliminarSubcategoria(c.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 14, cursor: "pointer", padding: "0 2px" }}>×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -530,96 +760,70 @@
       );
     }
 
-    // ─── PESTAÑA HISTORIAL DE CIERRES ───────────────────────────────────────────
-    function Historial({ registros = [] }) {
-      return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-          <Lbl>HISTORIAL COMPLETO DE PROCESAMIENTOS</Lbl>
-          {registros.length === 0 && <div style={{ fontSize: 13, color: B.textoSub, textAlign: "center", padding: 30 }}>No hay cierres distribuidos cargados en memoria.</div>}
-          {registros.map((r) => (
-            <Card key={r.id}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: B.textoSub, fontWeight: 700 }}><span>CIERRE DIARIO</span><span>{r.fecha}</span></div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: B.celeste, margin: "6px 0" }}>{fmt(r.ingreso)}</div>
-              <div style={{ fontSize: 11, color: B.texto, opacity: 0.85, lineHeight: 1.4 }}>{r.items?.map(it => `${it.cat}: $${it.monto}`).join(" | ")}</div>
-            </Card>
-          ))}
-        </div>
-      );
-    }
-
-    // ─── CONTENEDOR MAESTRO DE LA APLICACIÓN (APP) ────────────────────────────────
+    // ─── COMPONENTE CENTRAL DE LA APLICACIÓN (APP) ───────────────────────────────
     function App() {
-      const [tab, setTab] = useState("inicio");
-      const [registros, setRegistros] = useStore("ar_v3_registros", []);
-      const [pagos, setPagos] = useStore("ar_v3_pagos", INITIAL_PAGOS);
-      const [balancesIniciales, setBalancesIniciales] = useStore("ar_v3_balances", INITIAL_BALANCES);
-      
-      // Estado dinámico para categorías persistido en LocalStorage
-      const [todasCats, setTodasCats] = useStore("ar_v3_categorias", INITIAL_CATS);
+      const [tab, setTab] = useStore("ar_tab_2026", "inicio");
+      const [registros, setRegistros] = useStore("ar_registros_2026", []);
+      const [pagos, setPagos] = useStore("ar_pagos_2026", INITIAL_PAGOS);
+      const [todasCats, setTodasCats] = useStore("ar_cats_2026", INITIAL_CATS);
+      const [balancesIniciales, setBalancesIniciales] = useStore("ar_balances_2026", INITIAL_BALANCES);
+
+      // Definiciones SVG Fluidas y Limpias para corregir la apariencia de los iconos
+      const svgInicio = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+      const svgDist = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+      const svgPagos = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+      const svgHist = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+      const svgCuentas = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`;
 
       return (
-        <div style={{ backgroundColor: B.fondo, color: B.texto, minHeight: "100vh", paddingBottom: 110, boxSizing: "border-box", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <div style={{ minHeight: "100vh", backgroundColor: B.fondo, color: B.texto, boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
           
-          {/* HEADER DE MARCA */}
-          <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 14, background: B.fondoCard, borderBottom: `1px solid ${B.fondoBorde}` }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: B.azulOscuro, display: "flex", justifyContent: "center", alignItems: "center", fontSize: 20 }}>💧</div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, letterSpacing: 0.5 }}>Agua Ruth</h1>
-              <p style={{ margin: 0, fontSize: 11, color: B.textoSub, textTransform: "uppercase", letterSpacing: 1 }}>Control de Flujos</p>
+          {/* HEADER PREMIUM FIJO */}
+          <div style={{ background: "linear-gradient(to bottom, #0A1422, #07101C)", borderBottom: `1px solid ${B.fondoBorde}`, padding: "40px 20px 16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.celeste, boxShadow: `0 0 8px ${B.celeste}` }} />
+              <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.05em", color: "#fff" }}>AGUA RUTH</span>
             </div>
+            <span style={{ fontSize: 11, color: B.textoSub, fontWeight: 600, background: "#111E2E", padding: "4px 10px", borderRadius: 8 }}>Control de Flujos</span>
           </div>
 
-          {/* RENDER DE VISTAS */}
-          <div style={{ padding: "16px 20px" }}>
+          {/* RENDERIZADO DE LAS PESTAÑAS */}
+          <div style={{ flex: 1, padding: "16px 16px 100px 16px", display: "flex", flexDirection: "column", width: "100%", boxSizing: "border-box" }}>
             {tab === "inicio" && <Dashboard registros={registros} pagos={pagos} todasCats={todasCats} balancesIniciales={balancesIniciales} />}
-            {tab === "distribuir" && <Distribucion onGuardar={(r) => { setRegistros([r, ...registros]); setTab("inicio"); }} todasCats={todasCats} />}
-            {tab === "presupuesto" && <Pagos pagos={pagos} setPagos={setPagos} />}
+            {tab === "distribuir" && <Distribucion onGuardar={(r) => setRegistros([...registros, r])} todasCats={todasCats} />}
+            {tab === "pagos" && <Pagos pagos={pagos} setPagos={setPagos} />}
+            {tab === "historial" && <Historial registros={registros} setRegistros={setRegistros} todasCats={todasCats} />}
             {tab === "cuentas" && <CuentasConfig balancesIniciales={balancesIniciales} setBalancesIniciales={setBalancesIniciales} todasCats={todasCats} setTodasCats={setTodasCats} />}
-            {tab === "historial" && <Historial registros={registros} />}
           </div>
 
-          {/* NAV BAR FLOTANTE ELEVADA CONTRA BLOQUEOS */}
-          <div style={{
-            position: "fixed",
-            bottom: "24px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "calc(100% - 32px)",
-            maxWidth: "400px",
-            height: 68,
-            backgroundColor: "rgba(12, 24, 40, 0.96)",
-            backdropFilter: "blur(10px)",
-            borderRadius: 22,
-            border: `1px solid ${B.fondoBorde}`,
-            display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
-            alignItems: "center",
-            zIndex: 9999,
-            boxShadow: "0 15px 35px rgba(0,0,0,0.6)"
-          }}>
-            <button onClick={() => setTab("inicio")} style={{ background: "transparent", border: "none", color: tab === "inicio" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
-              <span style={{ fontSize: 18 }}>📊</span> Inicio
-            </button>
-            <button onClick={() => setTab("distribuir")} style={{ background: "transparent", border: "none", color: tab === "distribuir" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
-              <span style={{ fontSize: 18 }}>💸</span> Distribuir
-            </button>
-            <button onClick={() => setTab("presupuesto")} style={{ background: "transparent", border: "none", color: tab === "presupuesto" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", gap: 3, cursor: "pointer" }}>
-              <span style={{ fontSize: 18 }}>📋</span> Pagos
-            </button>
-            <button onClick={() => setTab("cuentas")} style={{ background: "transparent", border: "none", color: tab === "cuentas" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", gap: 3, cursor: "pointer" }}>
-              <span style={{ fontSize: 18 }}>💳</span> Fondos
-            </button>
-            <button onClick={() => setTab("historial")} style={{ background: "transparent", border: "none", color: tab === "historial" ? B.celeste : B.textoSub, fontSize: 10, display: "flex", flexDirection: "column", gap: 3, cursor: "pointer" }}>
-              <span style={{ fontSize: 18 }}>⏳</span> Cierres
-            </button>
+          {/* MENÚ INFERIOR PREMIUM (TABS) - AJUSTADO PARA IPHONE */}
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, backgroundColor: "#091424F2", backdropFilter: "blur(20px)", borderTop: `1px solid ${B.fondoBorde}`, display: "flex", justifyContent: "space-around", padding: "10px 10px calc(10px + env(safe-area-inset-bottom)) 10px", zIndex: 1000 }}>
+            {[
+              { id: "inicio", label: "Inicio", svg: svgInicio },
+              { id: "distribuir", label: "Asignar", svg: svgDist },
+              { id: "pagos", label: "Semanal", svg: svgPagos },
+              { id: "historial", label: "Historial", svg: svgHist },
+              { id: "cuentas", label: "Cuentas", svg: svgCuentas }
+            ].map((t) => {
+              const act = tab === t.id;
+              return (
+                <button 
+                  key={t.id} 
+                  onClick={() => setTab(t.id)} 
+                  style={{ background: "transparent", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, color: act ? B.celeste : B.textoSub, cursor: "pointer", transition: "all 0.2s ease", padding: "6px 0", flex: 1 }}
+                >
+                  <IconoCustom source={t.svg} size={20} />
+                  <span style={{ fontSize: 10, fontWeight: act ? 700 : 500, letterSpacing: "0.02em" }}>{t.label}</span>
+                </button>
+              );
+            })}
           </div>
 
         </div>
       );
     }
 
-    // Inyectar el componente Maestro en el HTML real
-    const root = ReactDOM.createRoot(document.getElementById('root'));
+    const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
   </script>
 </body>
