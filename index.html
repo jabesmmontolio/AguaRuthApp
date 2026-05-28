@@ -173,12 +173,13 @@
     ];
 
     const INITIAL_BALANCES = { inversiones: 0, general: 0, nomina: 0, emergencia: 0, prestamo: 0, insumos: 0 };
+    // ==========================================
 
     // ─── FORMATOS MÓVILES ───
-    const fmt = (n) => `RD$ ${Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "0%");
-    const hoy = () => new Date().toISOString().slice(0, 10);
-    const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
+ const fmt = (n) => `RD$ ${Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "0%");
+const hoy = () => new Date().toISOString().slice(0, 10);
+const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
 
     function useStore(key, init) {
       const [v, set] = useState(() => {
