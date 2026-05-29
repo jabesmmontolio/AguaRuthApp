@@ -11,7 +11,6 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
-/* FIX 3: html y body configurados para evitar scroll en el root */
 html, body {
   margin: 0; padding: 0;
   height: 100%;
@@ -26,10 +25,10 @@ html, body {
   flex-direction: column;
   overflow: hidden;
 }
-/* FIX 1: tabla de desglose — fuente más pequeña para que los montos entren en una línea */
+/* FIX 1: tabla sin scroll horizontal — fuente pequeña, todo en una línea */
 .tabla-desglose td, .tabla-desglose th {
   white-space: nowrap;
-  font-size: 11px !important;
+  font-size: 10px !important;
 }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #152233; border-radius: 4px; }
@@ -38,7 +37,7 @@ html, body {
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 const B = {
   azulOscuro: "#1A65A4",
   celeste: "#70CCE1",
@@ -50,12 +49,12 @@ const B = {
   textoSub: "#4F7A99"
 };
 const CUENTAS = [
-  { id: "general",     nombre: "General",           color: "#4EA5E0", num: "0071074923" },
-  { id: "nomina",      nombre: "Nómina Empleados",   color: "#70CCE1", num: "0071078372" },
-  { id: "inversiones", nombre: "Inversiones",        color: "#22C55E", num: "0071079263" },
-  { id: "emergencia",  nombre: "Fondo Emergencia",   color: "#F59E0B", num: "0071079273" },
-  { id: "prestamo",    nombre: "Préstamo Reservas",  color: "#A78BFA", num: "0071079283" },
-  { id: "insumos",     nombre: "Insumos",            color: "#FB923C", num: "0071074293" }
+  { id: "general",    nombre: "General",           color: "#4EA5E0", num: "0071074923" },
+  { id: "nomina",     nombre: "Nómina Empleados",  color: "#70CCE1", num: "0071078372" },
+  { id: "inversiones",nombre: "Inversiones",        color: "#22C55E", num: "0071079263" },
+  { id: "emergencia", nombre: "Fondo Emergencia",   color: "#F59E0B", num: "0071079273" },
+  { id: "prestamo",   nombre: "Préstamo Reservas",  color: "#A78BFA", num: "0071079283" },
+  { id: "insumos",    nombre: "Insumos",             color: "#FB923C", num: "0071074293" }
 ];
 const SVG_CUENTAS = {
   general: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h16Z"/></svg>',
@@ -75,45 +74,45 @@ const MESES_2026 = [
   { val: "2026-11", label: "Noviembre 2026"}, { val: "2026-12", label: "Diciembre 2026"}
 ];
 const INITIAL_CATS = [
-  { id: "g1",  nombre: "Electricidad",                    cuenta: "general",     color: "#4EA5E0" },
-  { id: "g2",  nombre: "Agua",                            cuenta: "general",     color: "#4EA5E0" },
-  { id: "g3",  nombre: "Teléfono e Internet",             cuenta: "general",     color: "#4EA5E0" },
-  { id: "g4",  nombre: "Basura",                          cuenta: "general",     color: "#4EA5E0" },
-  { id: "g5",  nombre: "Alquiler Local",                  cuenta: "general",     color: "#4EA5E0" },
-  { id: "g6",  nombre: "TSS / Seguro",                    cuenta: "general",     color: "#4EA5E0" },
-  { id: "g7",  nombre: "Infotep",                         cuenta: "general",     color: "#4EA5E0" },
-  { id: "n1",  nombre: "1ra Quincena",                    cuenta: "nomina",      color: "#70CCE1" },
-  { id: "n2",  nombre: "2da Quincena",                    cuenta: "nomina",      color: "#70CCE1" },
-  { id: "n3",  nombre: "Bonificaciones",                  cuenta: "nomina",      color: "#70CCE1" },
-  { id: "n4",  nombre: "Incentivos",                      cuenta: "nomina",      color: "#70CCE1" },
-  { id: "n5",  nombre: "Horas Extras",                    cuenta: "nomina",      color: "#70CCE1" },
-  { id: "n6",  nombre: "Feriados",                        cuenta: "nomina",      color: "#70CCE1" },
-  { id: "n7",  nombre: "Fondo Contratacion por Vacaciones", cuenta: "nomina",    color: "#70CCE1" },
-  { id: "n8",  nombre: "Fondo Salario de Navidad",        cuenta: "nomina",      color: "#70CCE1" },
-  { id: "i1",  nombre: "Botellones",                      cuenta: "inversiones", color: "#22C55E" },
-  { id: "i2",  nombre: "Tapas",                           cuenta: "inversiones", color: "#22C55E" },
-  { id: "i3",  nombre: "Sellos",                          cuenta: "inversiones", color: "#22C55E" },
-  { id: "i4",  nombre: "Etiquetas",                       cuenta: "inversiones", color: "#22C55E" },
-  { id: "i5",  nombre: "Exhibidores",                     cuenta: "inversiones", color: "#22C55E" },
-  { id: "i6",  nombre: "Marketing",                       cuenta: "inversiones", color: "#22C55E" },
-  { id: "i7",  nombre: "Computadora",                     cuenta: "inversiones", color: "#22C55E" },
-  { id: "i8",  nombre: "Alquiler Camioncito",             cuenta: "inversiones", color: "#22C55E" },
-  { id: "i9",  nombre: "Pintura Exhibidores",             cuenta: "inversiones", color: "#22C55E" },
-  { id: "i10", nombre: "Ganancias",                       cuenta: "inversiones", color: "#22C55E" },
-  { id: "e1",  nombre: "Imprevistos",                     cuenta: "emergencia",  color: "#F59E0B" },
-  { id: "e2",  nombre: "Reparaciones de Motores",         cuenta: "emergencia",  color: "#F59E0B" },
-  { id: "e3",  nombre: "Reparaciones de Maquinarias",     cuenta: "emergencia",  color: "#F59E0B" },
-  { id: "pr1", nombre: "Préstamo Coop",                   cuenta: "prestamo",    color: "#A78BFA" },
-  { id: "pr2", nombre: "Préstamo Reservas",               cuenta: "prestamo",    color: "#A78BFA" },
-  { id: "pr3", nombre: "Acuerdo de Pago/TSS",             cuenta: "prestamo",    color: "#A78BFA" },
-  { id: "pr4", nombre: "Fondo Abono de Prestamos",        cuenta: "prestamo",    color: "#A78BFA" },
-  { id: "in1", nombre: "Aceite de Motores",               cuenta: "insumos",     color: "#FB923C" },
-  { id: "in2", nombre: "Gasolina",                        cuenta: "insumos",     color: "#FB923C" },
-  { id: "in3", nombre: "Sal",                             cuenta: "insumos",     color: "#FB923C" },
-  { id: "in4", nombre: "Cloro",                           cuenta: "insumos",     color: "#FB923C" },
-  { id: "in5", nombre: "Detergente",                      cuenta: "insumos",     color: "#FB923C" },
-  { id: "in6", nombre: "Guantes y Mascarillas",           cuenta: "insumos",     color: "#FB923C" },
-  { id: "in7", nombre: "Imprevistos Insumos",             cuenta: "insumos",     color: "#FB923C" }
+  { id: "g1",  nombre: "Electricidad",               cuenta: "general",     color: "#4EA5E0" },
+  { id: "g2",  nombre: "Agua",                        cuenta: "general",     color: "#4EA5E0" },
+  { id: "g3",  nombre: "Teléfono e Internet",         cuenta: "general",     color: "#4EA5E0" },
+  { id: "g4",  nombre: "Basura",                      cuenta: "general",     color: "#4EA5E0" },
+  { id: "g5",  nombre: "Alquiler Local",              cuenta: "general",     color: "#4EA5E0" },
+  { id: "g6",  nombre: "TSS / Seguro",                cuenta: "general",     color: "#4EA5E0" },
+  { id: "g7",  nombre: "Infotep",                     cuenta: "general",     color: "#4EA5E0" },
+  { id: "n1",  nombre: "1ra Quincena",                cuenta: "nomina",      color: "#70CCE1" },
+  { id: "n2",  nombre: "2da Quincena",                cuenta: "nomina",      color: "#70CCE1" },
+  { id: "n3",  nombre: "Bonificaciones",              cuenta: "nomina",      color: "#70CCE1" },
+  { id: "n4",  nombre: "Incentivos",                  cuenta: "nomina",      color: "#70CCE1" },
+  { id: "n5",  nombre: "Horas Extras",                cuenta: "nomina",      color: "#70CCE1" },
+  { id: "n6",  nombre: "Feriados",                    cuenta: "nomina",      color: "#70CCE1" },
+  { id: "n7",  nombre: "Fondo Contratacion por Vacaciones", cuenta: "nomina",color: "#70CCE1" },
+  { id: "n8",  nombre: "Fondo Salario de Navidad",    cuenta: "nomina",      color: "#70CCE1" },
+  { id: "i1",  nombre: "Botellones",                  cuenta: "inversiones", color: "#22C55E" },
+  { id: "i2",  nombre: "Tapas",                       cuenta: "inversiones", color: "#22C55E" },
+  { id: "i3",  nombre: "Sellos",                      cuenta: "inversiones", color: "#22C55E" },
+  { id: "i4",  nombre: "Etiquetas",                   cuenta: "inversiones", color: "#22C55E" },
+  { id: "i5",  nombre: "Exhibidores",                 cuenta: "inversiones", color: "#22C55E" },
+  { id: "i6",  nombre: "Marketing",                   cuenta: "inversiones", color: "#22C55E" },
+  { id: "i7",  nombre: "Computadora",                 cuenta: "inversiones", color: "#22C55E" },
+  { id: "i8",  nombre: "Alquiler Camioncito",         cuenta: "inversiones", color: "#22C55E" },
+  { id: "i9",  nombre: "Pintura Exhibidores",         cuenta: "inversiones", color: "#22C55E" },
+  { id: "i10", nombre: "Ganancias",                   cuenta: "inversiones", color: "#22C55E" },
+  { id: "e1",  nombre: "Imprevistos",                 cuenta: "emergencia",  color: "#F59E0B" },
+  { id: "e2",  nombre: "Reparaciones de Motores",     cuenta: "emergencia",  color: "#F59E0B" },
+  { id: "e3",  nombre: "Reparaciones de Maquinarias", cuenta: "emergencia",  color: "#F59E0B" },
+  { id: "pr1", nombre: "Préstamo Coop",               cuenta: "prestamo",    color: "#A78BFA" },
+  { id: "pr2", nombre: "Préstamo Reservas",           cuenta: "prestamo",    color: "#A78BFA" },
+  { id: "pr3", nombre: "Acuerdo de Pago/TSS",         cuenta: "prestamo",    color: "#A78BFA" },
+  { id: "pr4", nombre: "Fondo Abono de Prestamos",    cuenta: "prestamo",    color: "#A78BFA" },
+  { id: "in1", nombre: "Aceite de Motores",           cuenta: "insumos",     color: "#FB923C" },
+  { id: "in2", nombre: "Gasolina",                    cuenta: "insumos",     color: "#FB923C" },
+  { id: "in3", nombre: "Sal",                         cuenta: "insumos",     color: "#FB923C" },
+  { id: "in4", nombre: "Cloro",                       cuenta: "insumos",     color: "#FB923C" },
+  { id: "in5", nombre: "Detergente",                  cuenta: "insumos",     color: "#FB923C" },
+  { id: "in6", nombre: "Guantes y Mascarillas",       cuenta: "insumos",     color: "#FB923C" },
+  { id: "in7", nombre: "Imprevistos Insumos",         cuenta: "insumos",     color: "#FB923C" }
 ];
 const INITIAL_PAGOS = [
   { id: "p1",    semana: 1, nombre: "Teléfono e Internet", monto: 2500,  cuenta: "general",  ok: false },
@@ -131,9 +130,9 @@ const INITIAL_PAGOS = [
   { id: "p8_7",  semana: 2, nombre: "Nómina - Ambiorix",   monto: 2500,  cuenta: "nomina",   ok: false },
   { id: "p8_8",  semana: 2, nombre: "Nómina - Eduard",     monto: 750,   cuenta: "nomina",   ok: false },
   { id: "p8_9",  semana: 2, nombre: "Nómina - Ruth",       monto: 750,   cuenta: "nomina",   ok: false },
-  { id: "p15",   semana: 3, nombre: "Préstamo Coop",       monto: 15000, cuenta: "prestamo", ok: false },
-  { id: "p16",   semana: 3, nombre: "Alquiler Local",      monto: 13680, cuenta: "general",  ok: false },
-  { id: "p17",   semana: 3, nombre: "Préstamo Reservas",   monto: 32300, cuenta: "prestamo", ok: false },
+  { id: "p15",   semana: 3, nombre: "Préstamo Coop",        monto: 15000, cuenta: "prestamo", ok: false },
+  { id: "p16",   semana: 3, nombre: "Alquiler Local",       monto: 13680, cuenta: "general",  ok: false },
+  { id: "p17",   semana: 3, nombre: "Préstamo Reservas",    monto: 32300, cuenta: "prestamo", ok: false },
   { id: "p18_1", semana: 4, nombre: "Nómina - Ariel",      monto: 5000,  cuenta: "nomina",   ok: false },
   { id: "p18_2", semana: 4, nombre: "Nómina - Gedalias",   monto: 10000, cuenta: "nomina",   ok: false },
   { id: "p18_3", semana: 4, nombre: "Nómina - Mikaias",    monto: 3300,  cuenta: "nomina",   ok: false },
@@ -146,11 +145,10 @@ const INITIAL_PAGOS = [
 ];
 
 const FORMATEADOR_MONEDA = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmt = (n) => `RD$${FORMATEADOR_MONEDA.format(n || 0)}`;
-// FIX 2: fmtConEspacio para mostrar montos con RD$ en inputs de cuentas
+const fmt        = (n) => `RD$${FORMATEADOR_MONEDA.format(n || 0)}`;
 const fmtDisplay = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
-const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "0%");
-const hoy = () => new Date().toISOString().slice(0, 10);
+const pct  = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "0%");
+const hoy  = () => new Date().toISOString().slice(0, 10);
 const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
 
 function useStore(key, init) {
@@ -162,25 +160,59 @@ function useStore(key, init) {
   return [v, set];
 }
 
-// FIX 2: InputDecimalContable ahora muestra "RD$" como prefijo visual
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX 2: InputDecimalContable con separador de miles
+//   • Mientras el campo tiene foco → muestra el valor "raw" (sin comas) para editar
+//   • Al perder foco → formatea con comas (e.g. 8,564.35)
+// ─────────────────────────────────────────────────────────────────────────────
 function InputDecimalContable({ value, onChange, style = {} }) {
-  const [localVal, setLocalVal] = useState(value === 0 || value === undefined ? "" : value.toString());
+  const [focused, setFocused] = useState(false);
+  // rawStr = lo que el usuario escribe mientras edita
+  const [rawStr, setRawStr] = useState(value === 0 || value == null ? "" : String(value));
+
+  // Sync rawStr cuando value cambia externamente (solo si no estamos editando)
   useEffect(() => {
-    if (value !== parseFloat(localVal.replace(/,/g, ''))) {
-      setLocalVal(value === 0 || value === undefined ? "" : value.toString());
+    if (!focused) {
+      setRawStr(value === 0 || value == null ? "" : String(value));
     }
-  }, [value]);
+  }, [value, focused]);
+
+  // Valor que se muestra:
+  //   - con foco  → rawStr (lo que el usuario teclea)
+  //   - sin foco  → formateado con comas si hay número, vacío si 0/null
+  const displayValue = focused
+    ? rawStr
+    : (value ? FORMATEADOR_MONEDA.format(value) : "");
+
   const handleChange = (e) => {
-    const v = e.target.value.replace(/[^0-9.,]/g, '');
-    setLocalVal(v);
-    const parsed = parseFloat(v.replace(/,/g, ''));
+    const v = e.target.value.replace(/[^0-9.]/g, ""); // solo dígitos y punto
+    setRawStr(v);
+    const parsed = parseFloat(v);
     onChange(isNaN(parsed) ? 0 : parsed);
   };
+
+  const handleFocus = () => {
+    setFocused(true);
+    // Al enfocar, muestra el número limpio para editar
+    setRawStr(value === 0 || value == null ? "" : String(value));
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    // Al salir, deja que displayValue calcule el formateado
+  };
+
   return (
     <div style={{ display: "flex", alignItems: "center", background: "#091526", border: "1px solid #152233", borderRadius: 12, overflow: "hidden", ...style }}>
       <span style={{ padding: "8px 6px 8px 10px", color: "#4F7A99", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", userSelect: "none" }}>RD$</span>
       <input
-        type="text" inputMode="decimal" placeholder="0.00" value={localVal} onChange={handleChange}
+        type="text"
+        inputMode="decimal"
+        placeholder="0.00"
+        value={displayValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         style={{ background: "transparent", border: "none", padding: "8px 10px 8px 2px", color: "#E8F4FD", fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", textAlign: "right" }}
       />
     </div>
@@ -215,7 +247,14 @@ function Btn({ children, onClick, v = "primary", style = {}, disabled = false })
   return <button onClick={onClick} disabled={disabled} style={{ ...vs[v], borderRadius: 14, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: "100%", boxSizing: "border-box", ...style }}>{children}</button>;
 }
 
-// FIX 1: fontSize reducido a 11px y whiteSpace nowrap para que montos queden en una línea
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX 1: TablaDesgloseCuenta — sin scroll horizontal
+//   • Sin overflowX: "auto" en el contenedor principal
+//   • Encabezado con overflow: hidden + textOverflow: ellipsis para no romperse
+//   • Columnas con labels abreviados: Dist. / Util. / Rest.
+//   • Concepto con maxWidth y textOverflow: ellipsis
+//   • fontSize 10px en celdas (ya definido en CSS global .tabla-desglose)
+// ─────────────────────────────────────────────────────────────────────────────
 function TablaDesgloseCuenta({ cuentaId, registrosDelMes, pagosDelMes, todasCats, balancesIniciales }) {
   const cuentaObj = CUENTAS.find(c => c.id === cuentaId);
   if (!cuentaObj) return null;
@@ -236,6 +275,7 @@ function TablaDesgloseCuenta({ cuentaId, registrosDelMes, pagosDelMes, todasCats
       utilizadoPorCat["__sin_cat__"] = (utilizadoPorCat["__sin_cat__"] || 0) + pago.monto;
     }
   });
+
   const filas = subcats.map(cat => {
     const esHold = cat.nombre.toLowerCase().includes("hold");
     const inicialSubcat = parseFloat(balancesIniciales[cat.id] || 0);
@@ -247,50 +287,89 @@ function TablaDesgloseCuenta({ cuentaId, registrosDelMes, pagosDelMes, todasCats
     totalDist += dist; totalUtil += util; totalRest += restante;
     return { concepto: cat.nombre, dist, util, restante, esHold };
   });
+
   const sinCat = utilizadoPorCat["__sin_cat__"] || 0;
   if (sinCat > 0) { totalUtil += sinCat; totalRest -= sinCat; }
 
-  // FIX 1: className="tabla-desglose" + fontSize 11px en celdas para montos en una línea
+  // Nombre de cuenta abreviado para el header (max ~18 chars)
+  const nombreCorto = cuentaObj.nombre.length > 16
+    ? cuentaObj.nombre.slice(0, 15) + "…"
+    : cuentaObj.nombre;
+
   return (
-    <div style={{ marginTop: 10, overflowX: "auto", background: "#091424", borderRadius: 12, border: "1px solid #1A65A466", width: "100%", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#11253E", padding: "10px 14px", borderBottom: "2px solid #152233" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, color: B.textoSub, fontWeight: 600 }}>No. {cuentaObj.num}</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Agua Ruth / {cuentaObj.nombre}</span>
+    <div style={{
+      marginTop: 10,
+      background: "#091424",
+      borderRadius: 12,
+      border: "1px solid #1A65A466",
+      width: "100%",
+      boxSizing: "border-box",
+      overflow: "hidden"   /* FIX 1: sin overflowX auto */
+    }}>
+      {/* FIX 1: header con overflow hidden para no romperse al ancho */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "#11253E",
+        padding: "8px 10px",
+        borderBottom: "2px solid #152233",
+        overflow: "hidden"
+      }}>
+        <div style={{ display: "flex", flexDirection: "column", overflow: "hidden", flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 9, color: B.textoSub, fontWeight: 600, whiteSpace: "nowrap" }}>No. {cuentaObj.num}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            Agua Ruth / {nombreCorto}
+          </span>
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: B.celeste, whiteSpace: "nowrap" }}>{fmt(totalRest)}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: B.celeste, whiteSpace: "nowrap", paddingLeft: 6 }}>
+          {fmt(totalRest)}
+        </div>
       </div>
-      <table className="tabla-desglose" style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, textAlign: "left" }}>
+
+      {/* FIX 1: tabla con layout fixed + col widths para no desbordar */}
+      <table
+        className="tabla-desglose"
+        style={{ width: "100%", borderCollapse: "collapse", fontSize: 10, textAlign: "left", tableLayout: "fixed" }}
+      >
+        <colgroup>
+          <col style={{ width: "38%" }} />
+          <col style={{ width: "21%" }} />
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "23%" }} />
+        </colgroup>
         <thead>
           <tr style={{ background: "#0F1C2E", color: B.textoSub, fontWeight: 700, borderBottom: "1px solid #152233" }}>
-            <th style={{ padding: "7px 10px" }}>Concepto</th>
-            <th style={{ padding: "7px 10px", textAlign: "right", whiteSpace: "nowrap" }}>Distribución</th>
-            <th style={{ padding: "7px 10px", textAlign: "right", whiteSpace: "nowrap" }}>Utilizado</th>
-            <th style={{ padding: "7px 10px", textAlign: "right", whiteSpace: "nowrap" }}>Restante</th>
+            <th style={{ padding: "6px 8px" }}>Concepto</th>
+            <th style={{ padding: "6px 4px", textAlign: "right" }}>Dist.</th>
+            <th style={{ padding: "6px 4px", textAlign: "right" }}>Util.</th>
+            <th style={{ padding: "6px 8px", textAlign: "right" }}>Rest.</th>
           </tr>
         </thead>
         <tbody>
           {filas.map((f, idx) => (
             <tr key={idx} style={{ borderBottom: "1px solid #15223333", color: f.esHold ? "#4F7A99" : B.texto, background: f.esHold ? "#1A65A408" : "transparent" }}>
-              <td style={{ padding: "7px 10px", color: f.esHold ? B.textoSub : B.texto }}>{f.concepto}{f.esHold ? " (fondo)" : ""}</td>
-              <td style={{ padding: "7px 10px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.dist)}</td>
-              <td style={{ padding: "7px 10px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.util)}</td>
-              <td style={{ padding: "7px 10px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{fmt(f.restante)}</td>
+              <td style={{ padding: "6px 8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: f.esHold ? B.textoSub : B.texto }}>
+                {f.concepto}{f.esHold ? " (fondo)" : ""}
+              </td>
+              <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.dist)}</td>
+              <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.util)}</td>
+              <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{fmt(f.restante)}</td>
             </tr>
           ))}
           {sinCat > 0 && (
             <tr style={{ borderBottom: "1px solid #15223333", background: "#F59E0B11" }}>
-              <td style={{ padding: "7px 10px", color: "#F59E0B", fontSize: 10 }}>⚠ Sin categoría</td>
-              <td style={{ padding: "7px 10px", textAlign: "right" }}>—</td>
-              <td style={{ padding: "7px 10px", textAlign: "right", color: "#F59E0B", whiteSpace: "nowrap" }}>{fmt(sinCat)}</td>
-              <td style={{ padding: "7px 10px", textAlign: "right", color: "#EF4444", whiteSpace: "nowrap" }}>{fmt(-sinCat)}</td>
+              <td style={{ padding: "6px 8px", color: "#F59E0B", fontSize: 9, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>⚠ Sin categoría</td>
+              <td style={{ padding: "6px 4px", textAlign: "right" }}>—</td>
+              <td style={{ padding: "6px 4px", textAlign: "right", color: "#F59E0B", whiteSpace: "nowrap" }}>{fmt(sinCat)}</td>
+              <td style={{ padding: "6px 8px", textAlign: "right", color: "#EF4444", whiteSpace: "nowrap" }}>{fmt(-sinCat)}</td>
             </tr>
           )}
           <tr style={{ background: "#0F1C2E", fontWeight: 700, color: "#fff", borderTop: "2px solid #152233" }}>
-            <td style={{ padding: "9px 10px" }}>Totales</td>
-            <td style={{ padding: "9px 10px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalDist)}</td>
-            <td style={{ padding: "9px 10px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalUtil)}</td>
-            <td style={{ padding: "9px 10px", textAlign: "right", color: B.celeste, whiteSpace: "nowrap" }}>{fmt(totalRest)}</td>
+            <td style={{ padding: "7px 8px" }}>Totales</td>
+            <td style={{ padding: "7px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalDist)}</td>
+            <td style={{ padding: "7px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalUtil)}</td>
+            <td style={{ padding: "7px 8px", textAlign: "right", color: B.celeste, whiteSpace: "nowrap" }}>{fmt(totalRest)}</td>
           </tr>
         </tbody>
       </table>
@@ -304,6 +383,7 @@ function Dashboard({ registros = [], pagos = [], todasCats = [], balancesInicial
   const ingresosMes = registrosDelMes.reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
   const pagosDelMes = pagos.filter(p => p.mes === mesFiltro);
   const pagosPendientes = pagosDelMes.filter(p => !p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
+
   const saldosCuentas = {};
   CUENTAS.forEach(c => {
     const subcatsDeCuenta = todasCats.filter(cat => cat.cuenta === c.id);
@@ -325,8 +405,10 @@ function Dashboard({ registros = [], pagos = [], todasCats = [], balancesInicial
       if (saldosCuentas[cuentaDestino] !== undefined) saldosCuentas[cuentaDestino] -= parseFloat(p.monto) || 0;
     }
   });
-  const saldoTotalGlobal = Object.values(saldosCuentas).reduce((a, b) => a + b, 0);
+
+  const saldoTotalGlobal  = Object.values(saldosCuentas).reduce((a, b) => a + b, 0);
   const gananciaAcumulada = saldosCuentas["inversiones"] || 0;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", boxSizing: "border-box" }}>
       <div>
@@ -335,7 +417,7 @@ function Dashboard({ registros = [], pagos = [], todasCats = [], balancesInicial
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
         {[
-          { label: "SALDO TOTAL CUENTAS", val: fmtDisplay(saldoTotalGlobal), color: B.texto },
+          { label: "SALDO TOTAL CUENTAS", val: fmtDisplay(saldoTotalGlobal),  color: B.texto },
           { label: "GANANCIA ACUMULADA",  val: fmtDisplay(gananciaAcumulada), color: "#22C55E" },
           { label: "INGRESO DEL MES",     val: fmtDisplay(ingresosMes),       color: B.celeste },
           { label: "PAGOS PENDIENTES",    val: fmtDisplay(pagosPendientes),   color: "#FB923C" }
@@ -374,8 +456,10 @@ function Dashboard({ registros = [], pagos = [], todasCats = [], balancesInicial
           const estaAbierta = cuentaDetalle === c.id;
           return (
             <div key={c.id} style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-              <div onClick={() => setCuentaDetalle(estaAbierta ? null : c.id)}
-                style={{ background: B.fondoCard, border: `1px solid ${estaAbierta ? c.color : B.fondoBorde}`, borderRadius: 16, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+              <div
+                onClick={() => setCuentaDetalle(estaAbierta ? null : c.id)}
+                style={{ background: B.fondoCard, border: `1px solid ${estaAbierta ? c.color : B.fondoBorde}`, borderRadius: 16, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+              >
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <IconoCustom source={SVG_CUENTAS[c.id]} size={18} />
                   <div>
@@ -403,11 +487,11 @@ function Dashboard({ registros = [], pagos = [], todasCats = [], balancesInicial
 }
 
 function Distribucion({ onGuardar, todasCats = [] }) {
-  const [fecha, setFecha] = useState(hoy());
+  const [fecha, setFecha]   = useState(hoy());
   const [ingreso, setIngreso] = useState("");
-  const [items, setItems] = useState([{ cat: "", monto: "" }]);
-  const [ok, setOk] = useState(false);
-  const totaling = parseFloat(ingreso) || 0;
+  const [items, setItems]   = useState([{ cat: "", monto: "" }]);
+  const [ok, setOk]         = useState(false);
+  const totaling  = parseFloat(ingreso) || 0;
   const totalDist = items.reduce((s, i) => s + (parseFloat(i.monto) || 0), 0);
   const diff = totaling - totalDist;
   const addItem = () => setItems([...items, { cat: "", monto: "" }]);
@@ -586,15 +670,15 @@ function Pagos({ pagos = [], setPagos, mesFiltro }) {
 }
 
 function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) {
-  const [editId, setEditId] = useState(null);
-  const [editFecha, setEditFecha] = useState("");
+  const [editId, setEditId]         = useState(null);
+  const [editFecha, setEditFecha]   = useState("");
   const [editIngreso, setEditIngreso] = useState("");
-  const [editItems, setEditItems] = useState([]);
+  const [editItems, setEditItems]   = useState([]);
   const registrosDelMes = registros.filter(r => r.fecha.startsWith(mesFiltro));
   const comenzarEdicion = (reg) => { setEditId(reg.id); setEditFecha(reg.fecha); setEditIngreso(reg.ingreso); setEditItems([...reg.items]); };
   const guardarEdicion = () => {
     const totalBruto = parseFloat(editIngreso) || 0;
-    const totalDist = editItems.reduce((acc, cur) => acc + (parseFloat(cur.monto) || 0), 0);
+    const totalDist  = editItems.reduce((acc, cur) => acc + (parseFloat(cur.monto) || 0), 0);
     if (Math.abs(totalBruto - totalDist) > 0.02) { alert('Error: La distribución no está cuadrada.'); return; }
     setRegistros(registros.map(r => r.id === editId ? { id: editId, fecha: editFecha, ingreso: totalBruto, items: editItems.filter(i => i.cat && i.monto).map(i => ({ ...i, monto: parseFloat(i.monto) || 0 })) } : r));
     setEditId(null);
@@ -660,15 +744,14 @@ function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) 
   );
 }
 
-// FIX 4: CuentasConfig — sección de subcategorías colapsable por cuenta
 function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, setTodasCats }) {
-  const [nuevaSubcat, setNuevaSubcat] = useState("");
+  const [nuevaSubcat, setNuevaSubcat]         = useState("");
   const [cuentaSeleccionada, setCuentaSeleccionada] = useState("general");
   const [cuentaExpandida, setCuentaExpandida] = useState(null);
   const [editandoNombreId, setEditandoNombreId] = useState(null);
-  const [nuevoNombre, setNuevoNombre] = useState("");
-  // FIX 4: Estado para sección de subcategorías colapsadas por cuenta
+  const [nuevoNombre, setNuevoNombre]         = useState("");
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
+
   const toggleSeccion = (cuentaId) => setSeccionesAbiertas(prev => ({ ...prev, [cuentaId]: !prev[cuentaId] }));
 
   const agregarSubcategoria = () => {
@@ -676,7 +759,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
     const cuentaObj = CUENTAS.find(c => c.id === cuentaSeleccionada);
     setTodasCats([...todasCats, { id: "sub_" + Date.now(), nombre: nuevaSubcat.trim(), cuenta: cuentaSeleccionada, color: cuentaObj ? cuentaObj.color : "#4EA5E0" }]);
     setNuevaSubcat("");
-    // Abrir la sección donde se agregó
     setSeccionesAbiertas(prev => ({ ...prev, [cuentaSeleccionada]: true }));
   };
   const eliminarSubcategoria = (id) => setTodasCats(todasCats.filter(c => c.id !== id));
@@ -686,6 +768,7 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
     setTodasCats(todasCats.map(c => c.id === editandoNombreId ? { ...c, nombre: nuevoNombre.trim() } : c));
     setEditandoNombreId(null);
   };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
       <div>
@@ -707,7 +790,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
                     <span style={{ fontSize: 13, fontWeight: 700, color: B.texto }}>{c.nombre}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {/* FIX 2: totalInicialCuenta con símbolo RD$ */}
                     <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{fmtDisplay(totalInicialCuenta)}</span>
                     <span style={{ fontSize: 12, color: B.textoSub }}>{estaAbierto ? "▲" : "▼"}</span>
                   </div>
@@ -734,7 +816,7 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
                                 </button>
                               </div>
                             )}
-                            {/* FIX 2: InputDecimalContable ya muestra "RD$" prefix */}
+                            {/* FIX 2: InputDecimalContable con separador de miles */}
                             <InputDecimalContable
                               value={balancesIniciales[sub.id] || 0}
                               onChange={val => setBalancesIniciales({ ...balancesIniciales, [sub.id]: val })}
@@ -762,7 +844,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
           <Btn onClick={agregarSubcategoria}>+ Agregar Subcategoría</Btn>
         </div>
       </Card>
-      {/* FIX 4: Subcategorías configuradas — colapsadas por cuenta con botón toggle */}
       <Card style={{ background: "#09121F" }}>
         <Lbl style={{ color: B.textoSub }}>SUBCATEGORÍAS CONFIGURADAS</Lbl>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
@@ -772,16 +853,14 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
             const abierta = seccionesAbiertas[c.id];
             return (
               <div key={c.id} style={{ background: "#0C1828", border: `1px solid ${abierta ? c.color + "55" : "#1A2E44"}`, borderRadius: 12, overflow: "hidden" }}>
-                {/* Header colapsable por cuenta */}
                 <div onClick={() => toggleSeccion(c.id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", cursor: "pointer", background: abierta ? "#0F1E30" : "transparent" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <IconoCustom source={SVG_CUENTAS[c.id]} size={13} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: c.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{c.nombre}</span>
                     <span style={{ fontSize: 11, color: B.textoSub, background: "#152233", borderRadius: 6, padding: "1px 6px" }}>{subcatsDeEstaCuenta.length}</span>
                   </div>
-                  <span style={{ fontSize: 11, color: B.textoSub, transition: "transform 0.2s" }}>{abierta ? "▲" : "▼"}</span>
+                  <span style={{ fontSize: 11, color: B.textoSub }}>{abierta ? "▲" : "▼"}</span>
                 </div>
-                {/* Subcategorías expandibles con confirmación antes de eliminar */}
                 {abierta && (
                   <div style={{ padding: "10px 14px 14px", display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {subcatsDeEstaCuenta.map(sub => (
@@ -806,17 +885,17 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
 }
 
 function App() {
-  const [tab, setTab] = useStore("ar_tab_v4", "inicio");
-  const [registros, setRegistros] = useStore("ar_registros_v4", []);
-  const [pagos, setPagos] = useStore("ar_pagos_v4", INITIAL_PAGOS);
-  const [todasCats, setTodasCats] = useStore("ar_cats_v4", INITIAL_CATS);
+  const [tab, setTab]                           = useStore("ar_tab_v4", "inicio");
+  const [registros, setRegistros]               = useStore("ar_registros_v4", []);
+  const [pagos, setPagos]                       = useStore("ar_pagos_v4", INITIAL_PAGOS);
+  const [todasCats, setTodasCats]               = useStore("ar_cats_v4", INITIAL_CATS);
   const [balancesIniciales, setBalancesIniciales] = useStore("ar_balances_v4", {});
-  const [mesFiltro, setMesFiltro] = useStore("ar_mes_filtro_v4", obtenerMesActual());
+  const [mesFiltro, setMesFiltro]               = useStore("ar_mes_filtro_v4", obtenerMesActual());
 
-  const svgInicio = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
-  const svgDist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
-  const svgPagos = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
-  const svgHist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
+  const svgInicio  = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
+  const svgDist    = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
+  const svgPagos   = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
+  const svgHist    = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
   const svgCuentas = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
 
   useEffect(() => {
@@ -833,7 +912,6 @@ function App() {
   }, [mesFiltro, pagos.length]);
 
   return (
-    // FIX 3: Layout fijo — header sticky, contenido con scroll, tabs fijos abajo
     <div style={{ height: "100%", display: "flex", flexDirection: "column", backgroundColor: B.fondo, color: B.texto, boxSizing: "border-box", overflow: "hidden" }}>
       {/* Header fijo */}
       <div style={{ flexShrink: 0, background: "linear-gradient(to bottom, #0A1422, #07101C)", borderBottom: `1px solid ${B.fondoBorde}`, padding: "40px 20px 16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 100 }}>
@@ -854,21 +932,20 @@ function App() {
       </div>
       {/* Contenido scrollable */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 16px 16px", display: "flex", flexDirection: "column", width: "100%", boxSizing: "border-box" }}>
-        {tab === "inicio"     && <Dashboard registros={registros} pagos={pagos} todasCats={todasCats} balancesIniciales={balancesIniciales} mesFiltro={mesFiltro} />}
+        {tab === "inicio"     && <Dashboard    registros={registros} pagos={pagos} todasCats={todasCats} balancesIniciales={balancesIniciales} mesFiltro={mesFiltro} />}
         {tab === "distribuir" && <Distribucion onGuardar={r => setRegistros([...registros, r])} todasCats={todasCats} />}
-        {tab === "pagos"      && <Pagos pagos={pagos} setPagos={setPagos} mesFiltro={mesFiltro} />}
-        {tab === "historial"  && <Historial registros={registros} setRegistros={setRegistros} todasCats={todasCats} mesFiltro={mesFiltro} />}
+        {tab === "pagos"      && <Pagos        pagos={pagos} setPagos={setPagos} mesFiltro={mesFiltro} />}
+        {tab === "historial"  && <Historial    registros={registros} setRegistros={setRegistros} todasCats={todasCats} mesFiltro={mesFiltro} />}
         {tab === "cuentas"    && <CuentasConfig balancesIniciales={balancesIniciales} setBalancesIniciales={setBalancesIniciales} todasCats={todasCats} setTodasCats={setTodasCats} />}
-        {/* Espaciador para que el contenido no quede bajo los tabs */}
         <div style={{ height: 80, flexShrink: 0 }} />
       </div>
-      {/* FIX 3: Tabs absolutamente fijos al fondo — fuera del flujo de scroll */}
+      {/* Tabs fijos al fondo */}
       <div style={{ flexShrink: 0, backgroundColor: "#091424F2", backdropFilter: "blur(20px)", borderTop: `1px solid ${B.fondoBorde}`, display: "flex", justifyContent: "space-around", padding: "10px 10px calc(10px + env(safe-area-inset-bottom)) 10px", zIndex: 1000 }}>
         {[
-          { id: "inicio",     label: "Inicio",     svg: svgInicio },
-          { id: "distribuir", label: "Distribuir", svg: svgDist },
-          { id: "pagos",      label: "Semanal",    svg: svgPagos },
-          { id: "historial",  label: "Historial",  svg: svgHist },
+          { id: "inicio",     label: "Inicio",     svg: svgInicio  },
+          { id: "distribuir", label: "Distribuir", svg: svgDist    },
+          { id: "pagos",      label: "Semanal",    svg: svgPagos   },
+          { id: "historial",  label: "Historial",  svg: svgHist    },
           { id: "cuentas",    label: "Cuentas",    svg: svgCuentas }
         ].map(t => {
           const act = tab === t.id;
