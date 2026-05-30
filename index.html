@@ -151,6 +151,7 @@ const pct = (a,b) => (b > 0 ? ((a/b)*100).toFixed(1)+"%" : "0%");
 const hoy = () => new Date().toISOString().slice(0, 10);
 const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
 
+// Función maestra para guardar en localStorage de forma persistente
 function useStore(key, init) {
   const [v, set] = useState(() => {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; }
@@ -160,7 +161,6 @@ function useStore(key, init) {
   return [v, set];
 }
 
-// MOTOR CONTABLE GLOBAL (Calcula arrastres históricos y sumas del mes)
 const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias) => {
   const statsCat = {};
   const statsCuentas = {};
@@ -816,14 +816,30 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
               <Lbl style={{ marginBottom: 4 }}>De (Sale el dinero)</Lbl>
               <select value={trOrigen} onChange={e => setTrOrigen(e.target.value)} style={minimalistSelectStyle}>
                 <option value="" style={{ color: "#000" }}>Seleccionar Origen...</option>
-                {todasCats.map(c => <option key={`o-${c.id}`} value={c.nombre} style={{ color: "#000" }}>{c.nombre} (Disp: {fmt(saldosGlobales.statsCat[c.nombre]?.restante || 0)})</option>)}
+                {CUENTAS.map(cu => (
+                  <optgroup key={`ori_${cu.id}`} label={cu.nombre.toUpperCase()}>
+                    {todasCats.filter(c => c.cuenta === cu.id).map(c => (
+                      <option key={`o-${c.id}`} value={c.nombre} style={{ color: "#000" }}>
+                        {c.nombre} (Disp: {fmt(saldosGlobales.statsCat[c.nombre]?.restante || 0)})
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <Lbl style={{ marginBottom: 4 }}>Para (Entra el dinero)</Lbl>
               <select value={trDestino} onChange={e => setTrDestino(e.target.value)} style={minimalistSelectStyle}>
                 <option value="" style={{ color: "#000" }}>Seleccionar Destino...</option>
-                {todasCats.map(c => <option key={`d-${c.id}`} value={c.nombre} disabled={c.nombre === trOrigen} style={{ color: "#000" }}>{c.nombre}</option>)}
+                {CUENTAS.map(cu => (
+                  <optgroup key={`des_${cu.id}`} label={cu.nombre.toUpperCase()}>
+                    {todasCats.filter(c => c.cuenta === cu.id).map(c => (
+                      <option key={`d-${c.id}`} value={c.nombre} disabled={c.nombre === trOrigen} style={{ color: "#000" }}>
+                        {c.nombre}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
             <div style={{ display: "flex", flexDirection: "column", marginBottom: 6 }}>
@@ -952,6 +968,7 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
 }
 
 function App() {
+  // Las llaves _v5 aseguran que recuperes automáticamente toda la información de la versión que enviaste
   const [tab, setTab] = useStore("ar_tab_v5", "inicio");
   const [registros, setRegistros] = useStore("ar_registros_v5", []);
   const [pagos, setPagos] = useStore("ar_pagos_v5", INITIAL_PAGOS);
