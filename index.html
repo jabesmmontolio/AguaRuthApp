@@ -1,1035 +1,1038 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Agua Ruth - Control Financiero</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Agua Ruth">
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        html, body {
-            margin: 0; padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background-color: #07101C;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        #root {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .tabla-desglose td, .tabla-desglose th {
-            white-space: nowrap;
-            font-size: 10px !important;
-        }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #152233; border-radius: 4px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Agua Ruth - Control Financiero</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agua Ruth">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+html, body {
+  margin: 0; padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background-color: #07101C;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tabla-desglose td, .tabla-desglose th {
+  white-space: nowrap;
+  font-size: 10px !important;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #152233; border-radius: 4px; }
+</style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
 
-        const B = {
-            azulOscuro: "#1A65A4",
-            celeste: "#70CCE1",
-            azulMedio: "#4EA5E0",
-            fondo: "#07101C",
-            fondoCard: "#0C1828",
-            fondoBorde: "#152233",
-            texto: "#E8F4FD",
-            textoSub: "#4F7A99"
-        };
+const B = {
+  azulOscuro: "#1A65A4", celeste: "#70CCE1", azulMedio: "#4EA5E0",
+  fondo: "#07101C", fondoCard: "#0C1828", fondoBorde: "#152233",
+  texto: "#E8F4FD", textoSub: "#4F7A99"
+};
 
-        const CUENTAS = [
-            { id: "general", nombre: "General", color: "#4EA5E0", num: "0071074923" },
-            { id: "nomina", nombre: "Nómina Empleados", color: "#70CCE1", num: "0071078372" },
-            { id: "inversiones", nombre: "Inversiones", color: "#22C55E", num: "0071079263" },
-            { id: "emergencia", nombre: "Fondo Emergencia", color: "#F59E0B", num: "0071079273" },
-            { id: "prestamo", nombre: "Préstamo Reservas", color: "#A78BFA", num: "0071079283" },
-            { id: "insumos", nombre: "Insumos", color: "#FB923C", num: "0071074293" }
-        ];
+const CUENTAS = [
+  { id: "general", nombre: "General", color: "#4EA5E0", num: "0071074923" },
+  { id: "nomina", nombre: "Nómina Empleados", color: "#70CCE1", num: "0071078372" },
+  { id: "inversiones", nombre: "Inversiones", color: "#22C55E", num: "0071079263" },
+  { id: "emergencia", nombre: "Fondo Emergencia", color: "#F59E0B", num: "0071079273" },
+  { id: "prestamo", nombre: "Préstamo Reservas", color: "#A78BFA", num: "0071079283" },
+  { id: "insumos", nombre: "Insumos", color: "#FB923C", num: "0071074293" }
+];
 
-        const SVG_CUENTAS = {
-            general: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h16Z"/></svg>',
-            inversiones: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="19" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="20" cy="19" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="8" cy="12" r="2"/></svg>',
-            nomina: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>',
-            insumos: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 22-1-4"/><path d="M19 14a1 1 0 0 1-1 1v-1a2 2 0 0 0-2-2h-3a1 1 0 0 1-1 1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v1a1 1 0 0 1-1 1"/><path d="M19 14H5L1.973 6.767A1 1 0 0 1 2.946 5.5h18.108a1 1 0 0 1 .973 1.267Z"/><path d="m8 22 1-4"/></svg>',
-            emergencia: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
-            prestamo: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949Z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>'
-        };
+const SVG_CUENTAS = {
+  general: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h16Z"/></svg>',
+  inversiones: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="19" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="20" cy="19" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="8" cy="12" r="2"/></svg>',
+  nomina: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>',
+  insumos: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 22-1-4"/><path d="M19 14a1 1 0 0 1-1 1v-1a2 2 0 0 0-2-2h-3a1 1 0 0 1-1 1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v1a1 1 0 0 1-1 1"/><path d="M19 14H5L1.973 6.767A1 1 0 0 1 2.946 5.5h18.108a1 1 0 0 1 1.973 1.267Z"/><path d="m8 22 1-4"/></svg>',
+  emergencia: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01 0.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
+  prestamo: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949Z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>'
+};
+const SVG_EDITAR = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
 
-        const SVG_EDITAR = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+const MESES_2026 = [
+  {val: "2026-01", label: "Enero 2026" }, { val: "2026-02", label: "Febrero 2026" },
+  {val: "2026-03", label: "Marzo 2026" }, { val: "2026-04", label: "Abril 2026" },
+  {val: "2026-05", label: "Mayo 2026" }, { val: "2026-06", label: "Junio 2026" },
+  {val: "2026-07", label: "Julio 2026" }, { val: "2026-08", label: "Agosto 2026" },
+  {val: "2026-09", label: "Septiembre 2026" }, { val: "2026-10", label: "Octubre 2026" },
+  {val: "2026-11", label: "Noviembre 2026" }, { val: "2026-12", label: "Diciembre 2026" }
+];
 
-        const MESES_2026 = [
-            { val: "2026-01", label: "Enero 2026" }, { val: "2026-02", label: "Febrero 2026" },
-            { val: "2026-03", label: "Marzo 2026" }, { val: "2026-04", label: "Abril 2026" },
-            { val: "2026-05", label: "Mayo 2026" }, { val: "2026-06", label: "Junio 2026" },
-            { val: "2026-07", label: "Julio 2026" }, { val: "2026-08", label: "Agosto 2026" },
-            { val: "2026-09", label: "Septiembre 2026" }, { val: "2026-10", label: "Octubre 2026" },
-            { val: "2026-11", label: "Noviembre 2026" }, { val: "2026-12", label: "Diciembre 2026" }
-        ];
+const INITIAL_CATS = [
+  { id: "g1", nombre: "Electricidad", cuenta: "general", color: "#4EA5E0" },
+  { id: "g2", nombre: "Agua", cuenta: "general", color: "#4EA5E0" },
+  { id: "g3", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
+  { id: "g4", nombre: "Basura", cuenta: "general", color: "#4EA5E0" },
+  { id: "g5", nombre: "Alquiler Local", cuenta: "general", color: "#4EA5E0" },
+  { id: "g6", nombre: "TSS / Seguro", cuenta: "general", color: "#4EA5E0" },
+  { id: "g7", nombre: "Infotep", cuenta: "general", color: "#4EA5E0" },
+  { id: "n1", nombre: "1ra Quincena", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n2", nombre: "2da Quincena", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n3", nombre: "Bonificaciones", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n4", nombre: "Incentivos", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n5", nombre: "Horas Extras", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n6", nombre: "Feriados", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n7", nombre: "Fondo Contratacion por Vacaciones", cuenta: "nomina", color: "#70CCE1" },
+  { id: "n8", nombre: "Fondo Salario de Navidad", cuenta: "nomina", color: "#70CCE1" },
+  { id: "i1", nombre: "Botellones", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i2", nombre: "Tapas", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i3", nombre: "Sellos", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i4", nombre: "Etiquetas", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i5", nombre: "Exhibidores", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i6", nombre: "Marketing", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i7", nombre: "Computadora", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i8", nombre: "Alquiler Camioncito", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i9", nombre: "Pintura Exhibidores", cuenta: "inversiones", color: "#22C55E" },
+  { id: "i10", nombre: "Ganancias", cuenta: "inversiones", color: "#22C55E" },
+  { id: "e1", nombre: "Imprevistos", cuenta: "emergencia", color: "#F59E0B" },
+  { id: "e2", nombre: "Reparaciones de Motores", cuenta: "emergencia", color: "#F59E0B" },
+  { id: "e3", nombre: "Reparaciones de Maquinarias", cuenta: "emergencia", color: "#F59E0B" },
+  { id: "pr1", nombre: "Préstamo Coop", cuenta: "prestamo", color: "#A78BFA" },
+  { id: "pr2", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
+  { id: "pr3", nombre: "Acuerdo de Pago/TSS", cuenta: "prestamo", color: "#A78BFA" },
+  { id: "pr4", nombre: "Fondo Abono de Prestamos", cuenta: "prestamo", color: "#A78BFA" },
+  { id: "in1", nombre: "Aceite de Motores", cuenta: "insumos", color: "#FB923C" },
+  { id: "in2", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
+  { id: "in3", nombre: "Sal", cuenta: "insumos", color: "#FB923C" },
+  { id: "in4", nombre: "Cloro", cuenta: "insumos", color: "#FB923C" },
+  { id: "in5", nombre: "Detergente", cuenta: "insumos", color: "#FB923C" },
+  { id: "in6", nombre: "Guantes y Mascarillas", cuenta: "insumos", color: "#FB923C" },
+  { id: "in7", nombre: "Imprevistos Insumos", cuenta: "insumos", color: "#FB923C" }
+];
 
-        const INITIAL_CATS = [
-            { id: "g1", nombre: "Electricidad", cuenta: "general", color: "#4EA5E0" },
-            { id: "g2", nombre: "Agua", cuenta: "general", color: "#4EA5E0" },
-            { id: "g3", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
-            { id: "g4", nombre: "Basura", cuenta: "general", color: "#4EA5E0" },
-            { id: "g5", nombre: "Alquiler Local", cuenta: "general", color: "#4EA5E0" },
-            { id: "g6", nombre: "TSS / Seguro", cuenta: "general", color: "#4EA5E0" },
-            { id: "g7", nombre: "Infotep", cuenta: "general", color: "#4EA5E0" },
-            { id: "n1", nombre: "1ra Quincena", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n2", nombre: "2da Quincena", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n3", nombre: "Bonificaciones", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n4", nombre: "Incentivos", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n5", nombre: "Horas Extras", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n6", nombre: "Feriados", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n7", nombre: "Fondo Contratacion por Vacaciones", cuenta: "nomina", color: "#70CCE1" },
-            { id: "n8", nombre: "Fondo Salario de Navidad", cuenta: "nomina", color: "#70CCE1" },
-            { id: "i1", nombre: "Botellones", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i2", nombre: "Tapas", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i3", nombre: "Sellos", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i4", nombre: "Etiquetas", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i5", nombre: "Exhibidores", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i6", nombre: "Marketing", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i7", nombre: "Computadora", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i8", nombre: "Alquiler Camioncito", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i9", nombre: "Pintura Exhibidores", cuenta: "inversiones", color: "#22C55E" },
-            { id: "i10", nombre: "Ganancias", cuenta: "inversiones", color: "#22C55E" },
-            { id: "e1", nombre: "Imprevistos", cuenta: "emergencia", color: "#F59E0B" },
-            { id: "e2", nombre: "Reparaciones de Motores", cuenta: "emergencia", color: "#F59E0B" },
-            { id: "e3", nombre: "Reparaciones de Maquinarias", cuenta: "emergencia", color: "#F59E0B" },
-            { id: "pr1", nombre: "Préstamo Coop", cuenta: "prestamo", color: "#A78BFA" },
-            { id: "pr2", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
-            { id: "pr3", nombre: "Acuerdo de Pago/TSS", cuenta: "prestamo", color: "#A78BFA" },
-            { id: "pr4", nombre: "Fondo Abono de Prestamos", cuenta: "prestamo", color: "#A78BFA" },
-            { id: "in1", nombre: "Aceite de Motores", cuenta: "insumos", color: "#FB923C" },
-            { id: "in2", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
-            { id: "in3", nombre: "Sal", cuenta: "insumos", color: "#FB923C" },
-            { id: "in4", nombre: "Cloro", cuenta: "insumos", color: "#FB923C" },
-            { id: "in5", nombre: "Detergente", cuenta: "insumos", color: "#FB923C" },
-            { id: "in6", nombre: "Guantes y Mascarillas", cuenta: "insumos", color: "#FB923C" },
-            { id: "in7", nombre: "Imprevistos Insumos", cuenta: "insumos", color: "#FB923C" }
-        ];
+const INITIAL_PAGOS = [
+  { id: "p1", semana: 1, nombre: "Teléfono e Internet", monto: 2500, cuenta: "general", ok: false },
+  { id: "p2", semana: 1, nombre: "Agua", monto: 290, cuenta: "general", ok: false },
+  { id: "p3", semana: 1, nombre: "Gasolina", monto: 9500, cuenta: "insumos", ok: false },
+  { id: "p4", semana: 1, nombre: "TSS / Seguro", monto: 3700, cuenta: "general", ok: false },
+  { id: "p5", semana: 1, nombre: "Electricidad", monto: 12000, cuenta: "general", ok: false },
+  { id: "p6", semana: 1, nombre: "Basura", monto: 400, cuenta: "general", ok: false },
+  { id: "p8_1", semana: 2, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
+  { id: "p8_2", semana: 2, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p8_3", semana: 2, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
+  { id: "p8_4", semana: 2, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
+  { id: "p8_5", semana: 2, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p8_6", semana: 2, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
+  { id: "p8_7", semana: 2, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
+  { id: "p8_8", semana: 2, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
+  { id: "p8_9", semana: 2, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
+  { id: "p15", semana: 3, nombre: "Préstamo Coop", monto: 15000, cuenta: "prestamo", ok: false },
+  { id: "p16", semana: 3, nombre: "Alquiler Local", monto: 13680, cuenta: "general", ok: false },
+  { id: "p17", semana: 3, nombre: "Préstamo Reservas", monto: 32300, cuenta: "prestamo", ok: false },
+  { id: "p18_1", semana: 4, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
+  { id: "p18_2", semana: 4, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p18_3", semana: 4, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
+  { id: "p18_4", semana: 4, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
+  { id: "p18_5", semana: 4, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
+  { id: "p18_6", semana: 4, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
+  { id: "p18_7", semana: 4, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
+  { id: "p18_8", semana: 4, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
+  { id: "p18_9", semana: 4, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false }
+];
 
-        const INITIAL_PAGOS = [
-            { id: "p1", semana: 1, nombre: "Teléfono e Internet", monto: 2500, cuenta: "general", ok: false },
-            { id: "p2", semana: 1, nombre: "Agua", monto: 290, cuenta: "general", ok: false },
-            { id: "p3", semana: 1, nombre: "Gasolina", monto: 9500, cuenta: "insumos", ok: false },
-            { id: "p4", semana: 1, nombre: "TSS / Seguro", monto: 3700, cuenta: "general", ok: false },
-            { id: "p5", semana: 1, nombre: "Electricidad", monto: 12000, cuenta: "general", ok: false },
-            { id: "p6", semana: 1, nombre: "Basura", monto: 400, cuenta: "general", ok: false },
-            { id: "p8_1", semana: 2, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
-            { id: "p8_2", semana: 2, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
-            { id: "p8_3", semana: 2, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
-            { id: "p8_4", semana: 2, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
-            { id: "p8_5", semana: 2, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
-            { id: "p8_6", semana: 2, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
-            { id: "p8_7", semana: 2, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
-            { id: "p8_8", semana: 2, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
-            { id: "p8_9", semana: 2, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false },
-            { id: "p15", semana: 3, nombre: "Préstamo Coop", monto: 15000, cuenta: "prestamo", ok: false },
-            { id: "p16", semana: 3, nombre: "Alquiler Local", monto: 13680, cuenta: "general", ok: false },
-            { id: "p17", semana: 3, nombre: "Préstamo Reservas", monto: 32300, cuenta: "prestamo", ok: false },
-            { id: "p18_1", semana: 4, nombre: "Nómina - Ariel", monto: 5000, cuenta: "nomina", ok: false },
-            { id: "p18_2", semana: 4, nombre: "Nómina - Gedalias", monto: 10000, cuenta: "nomina", ok: false },
-            { id: "p18_3", semana: 4, nombre: "Nómina - Mikaias", monto: 3300, cuenta: "nomina", ok: false },
-            { id: "p18_4", semana: 4, nombre: "Nómina - Yudith", monto: 8500, cuenta: "nomina", ok: false },
-            { id: "p18_5", semana: 4, nombre: "Nómina - Jeison", monto: 10000, cuenta: "nomina", ok: false },
-            { id: "p18_6", semana: 4, nombre: "Nómina - Javielo", monto: 7500, cuenta: "nomina", ok: false },
-            { id: "p18_7", semana: 4, nombre: "Nómina - Ambiorix", monto: 2500, cuenta: "nomina", ok: false },
-            { id: "p18_8", semana: 4, nombre: "Nómina - Eduard", monto: 750, cuenta: "nomina", ok: false },
-            { id: "p18_9", semana: 4, nombre: "Nómina - Ruth", monto: 750, cuenta: "nomina", ok: false }
-        ];
+const FORMATEADOR_MONEDA = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
+const fmtDisplay = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
+const pct = (a,b) => (b > 0 ? ((a/b)*100).toFixed(1)+"%" : "0%");
+const hoy = () => new Date().toISOString().slice(0, 10);
+const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
 
-        const FORMATEADOR_MONEDA = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const fmt = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
-        const fmtDisplay = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
-        const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "0%");
-        const hoy = () => new Date().toISOString().slice(0, 10);
-        const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
+function useStore(key, init) {
+  const [v, set] = useState(() => {
+    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; }
+    catch { return init; }
+  });
+  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key, v]);
+  return [v, set];
+}
 
-        function useStore(key, init) {
-            const [v, set] = useState(() => {
-                try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; }
-                catch { return init; }
-            });
-            useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key, v]);
-            return [v, set];
-        }
+// MOTOR CONTABLE GLOBAL (Calcula arrastres históricos y sumas del mes)
+const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias) => {
+  const statsCat = {};
+  const statsCuentas = {};
+  const pagMesSinCatPorCuenta = {};
 
-        function InputDecimalContable({ value, onChange, style = {} }) {
-            const [focused, setFocused] = useState(false);
-            const [rawStr, setRawStr] = useState(value === 0 || value == null ? "" : String(value));
-            
-            useEffect(() => {
-                if (!focused) {
-                    setRawStr(value === 0 || value == null ? "" : String(value));
-                }
-            }, [value, focused]);
+  CUENTAS.forEach(c => {
+    statsCuentas[c.id] = { restante: 0 };
+    pagMesSinCatPorCuenta[c.id] = 0;
+  });
 
-            const displayValue = focused ? rawStr : (value ? FORMATEADOR_MONEDA.format(value) : "");
-            
-            const handleChange = (e) => {
-                const v = e.target.value.replace(/[^0-9.]/g, "");
-                setRawStr(v);
-                const parsed = parseFloat(v);
-                onChange(isNaN(parsed) ? 0 : parsed);
-            };
-            
-            const handleFocus = () => {
-                setFocused(true);
-                setRawStr(value === 0 || value == null ? "" : String(value));
-            };
-            
-            const handleBlur = () => { setFocused(false); };
-            
+  const pagoAcat = {};
+  pagos.filter(p => p.ok).forEach(p => {
+    const np = p.nombre.trim().toLowerCase();
+    let matchedCat = null;
+    if (p.cuenta === "nomina" && np.startsWith("nómina -")) {
+      matchedCat = todasCats.find(c => c.cuenta === "nomina" && c.nombre === (p.semana === 2 ? "1ra Quincena" : p.semana === 4 ? "2da Quincena" : ""));
+    } else {
+      matchedCat = todasCats.find(c => c.cuenta === (p.cuenta || "general") && c.nombre.trim().toLowerCase() === np);
+    }
+
+    if (matchedCat) {
+      pagoAcat[p.id] = matchedCat.nombre;
+    } else {
+      const holdCat = todasCats.find(c => c.cuenta === (p.cuenta || "general") && (c.nombre.toLowerCase().includes("hold") || c.nombre.toLowerCase().includes("fondo")));
+      if (holdCat) {
+        pagoAcat[p.id] = holdCat.nombre;
+      } else {
+        pagoAcat[p.id] = `__sin_cat_${p.cuenta || "general"}`;
+      }
+    }
+  });
+
+  todasCats.forEach(cat => {
+    const inicial = parseFloat(balancesIniciales[cat.id] || 0);
+    const esHold = cat.nombre.toLowerCase().includes("hold") || cat.nombre.toLowerCase().includes("fondo");
+
+    const regAnt = registros.filter(r => r.fecha.slice(0, 7) < mesFiltro);
+    const regMes = registros.filter(r => r.fecha.slice(0, 7) === mesFiltro);
+    const pagAnt = pagos.filter(p => p.ok && p.mes < mesFiltro);
+    const pagMes = pagos.filter(p => p.ok && p.mes === mesFiltro);
+    const trAnt = transferencias.filter(t => t.mes < mesFiltro);
+    const trMes = transferencias.filter(t => t.mes === mesFiltro);
+
+    const sumReg = (arr) => arr.reduce((sum, r) => sum + (r.items || []).filter(i => i.cat === cat.nombre).reduce((s, i) => s + parseFloat(i.monto||0), 0), 0);
+    const sumTrIn = (arr) => arr.filter(t => t.destino === cat.nombre).reduce((s, t) => s + parseFloat(t.monto||0), 0);
+    const sumTrOut = (arr) => arr.filter(t => t.origen === cat.nombre).reduce((s, t) => s + parseFloat(t.monto||0), 0);
+    const sumPag = (arr) => arr.filter(p => pagoAcat[p.id] === cat.nombre).reduce((sum, p) => sum + parseFloat(p.monto||0), 0);
+
+    const arrastre = inicial + sumReg(regAnt) + sumTrIn(trAnt) - sumTrOut(trAnt) - sumPag(pagAnt);
+    const ingresosMes = sumReg(regMes) + sumTrIn(trMes) - sumTrOut(trMes);
+    const distribucion = arrastre + ingresosMes;
+    const utilMes = sumPag(pagMes);
+    const restante = distribucion - utilMes;
+
+    statsCat[cat.nombre] = { arrastre, distribucion, utilMes, restante, esHold };
+    if(statsCuentas[cat.cuenta]) statsCuentas[cat.cuenta].restante += restante;
+  });
+
+  pagos.filter(p => p.ok && p.mes === mesFiltro).forEach(p => {
+    if(pagoAcat[p.id] && pagoAcat[p.id].startsWith("__sin_cat_")) {
+      const cId = p.cuenta || "general";
+      pagMesSinCatPorCuenta[cId] += parseFloat(p.monto||0);
+    }
+  });
+
+  return { statsCat, statsCuentas, pagMesSinCatPorCuenta };
+};
+
+function InputDecimalContable({ value, onChange, style = {} }) {
+  const [focused, setFocused] = useState(false);
+  const [rawStr, setRawStr] = useState(value === 0 || value == null ? "" : String(value));
+  useEffect(() => { if (!focused) setRawStr(value === 0 || value == null ? "" : String(value)); }, [value, focused]);
+  
+  const displayValue = focused ? rawStr : (value ? FORMATEADOR_MONEDA.format(value) : "");
+  
+  const handleChange = (e) => {
+    const v = e.target.value.replace(/[^0-9.]/g, "");
+    setRawStr(v);
+    const parsed = parseFloat(v);
+    onChange(isNaN(parsed) ? 0 : parsed);
+  };
+  const handleFocus = () => { setFocused(true); setRawStr(value === 0 || value == null ? "" : String(value)); };
+  const handleBlur = () => { setFocused(false); };
+  
+  return (
+    <div style={{ display: "flex", alignItems: "center", background: "#091526", border: "1px solid #152233", borderRadius: 12, overflow: "hidden", ...style }}>
+      <span style={{ padding: "8px 6px 8px 10px", color: "#4F7A99", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", userSelect: "none" }}>RD$</span>
+      <input type="text" inputMode="decimal" placeholder="0.00" value={displayValue} onChange={handleChange} onFocus={handleFocus} onBlur={handleBlur} style={{ background: "transparent", border: "none", padding: "8px 10px 8px 2px", color: "#E8F4FD", fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", textAlign: "right", ...(style.inputStyle || {}) }} />
+    </div>
+  );
+}
+
+function IconoCustom({ source, size = 18 }) {
+  if (!source) return null;
+  if (source.startsWith("http")) return <img src={source} style={{ width: size, height: size, objectFit: "contain" }} alt="icon" />;
+  if (source.trim().startsWith("<svg")) return <div style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }} dangerouslySetInnerHTML={{ __html: source }} />;
+  return <span style={{ fontSize: size }}>{source}</span>;
+}
+
+function Card({ children, style = {}, glow = false }) {
+  return <div style={{ background: B.fondoCard, border: `1px solid ${glow ? B.azulOscuro + "99" : B.fondoBorde}`, borderRadius: 20, padding: 18, width: "100%", boxSizing: "border-box", ...style }}>{children}</div>;
+}
+
+function Lbl({ children, style = {} }) {
+  return <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: B.textoSub, marginBottom: 8, ...style }}>{children}</div>;
+}
+
+function Inp({ style = {}, type = "text", inputMode, ...p }) {
+  return <input type={type} inputMode={inputMode} {...p} style={{ background: "#091526", border: `1px solid ${B.fondoBorde}`, borderRadius: 12, padding: "11px 14px", color: B.texto, fontSize: 15, width: "100%", boxSizing: "border-box", outline: "none", ...style }} />;
+}
+
+function Sel({ children, style = {}, ...p }) {
+  return <select {...p} style={{ background: "#091526", border: `1px solid ${B.fondoBorde}`, borderRadius: 12, padding: "11px 14px", color: B.texto, fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", ...style }}>{children}</select>;
+}
+
+function Btn({ children, onClick, v = "primary", style = {}, disabled = false }) {
+  const vs = {
+    primary: { background: `linear-gradient(135deg, ${B.azulOscuro}, ${B.azulMedio})`, color: "#fff", border: "none" },
+    ghost: { background: "transparent", color: B.celeste, border: `1px solid ${B.celeste}44` },
+    danger: { background: "linear-gradient(135deg, #DC2626, #EF4444)", color: "#fff", border: "none" }
+  };
+  return <button onClick={onClick} disabled={disabled} style={{ ...vs[v], borderRadius: 14, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: "100%", boxSizing: "border-box", ...style }}>{children}</button>;
+}
+
+function TablaDesgloseCuenta({ cuentaId, todasCats, saldosGlobales }) {
+  const cuentaObj = CUENTAS.find(c => c.id === cuentaId);
+  if (!cuentaObj) return null;
+  const subcats = todasCats.filter(c => c.cuenta === cuentaId);
+  
+  let totalDist = 0, totalUtil = 0, totalRest = 0;
+  
+  const filas = subcats.map(cat => {
+    const st = saldosGlobales.statsCat[cat.nombre] || { distribucion: 0, utilMes: 0, restante: 0, esHold: false };
+    totalDist += st.distribucion; totalUtil += st.utilMes; totalRest += st.restante;
+    return { concepto: cat.nombre, dist: st.distribucion, util: st.utilMes, restante: st.restante, esHold: st.esHold };
+  });
+
+  const sinCat = saldosGlobales.pagMesSinCatPorCuenta[cuentaId] || 0;
+  if (sinCat > 0) { totalUtil += sinCat; totalRest -= sinCat; }
+
+  const nombreCorto = cuentaObj.nombre.length > 16 ? cuentaObj.nombre.slice(0, 15) + "…" : cuentaObj.nombre;
+
+  return (
+    <div style={{ marginTop: 10, background: "#091424", borderRadius: 12, border: "1px solid #1A65A466", width: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#11253E", padding: "8px 10px", borderBottom: "2px solid #152233", overflow: "hidden" }}>
+        <div style={{ display: "flex", flexDirection: "column", overflow: "hidden", flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 9, color: B.textoSub, fontWeight: 600, whiteSpace: "nowrap" }}>No. {cuentaObj.num}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Agua Ruth / {nombreCorto}</span>
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: B.celeste, whiteSpace: "nowrap", paddingLeft: 6 }}>{fmt(totalRest)}</div>
+      </div>
+      <table className="tabla-desglose" style={{ width: "100%", borderCollapse: "collapse", fontSize: 10, textAlign: "left", tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: "38%" }} />
+          <col style={{ width: "21%" }} />
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "23%" }} />
+        </colgroup>
+        <thead>
+          <tr style={{ background: "#0F1C2E", color: B.textoSub, fontWeight: 700, borderBottom: "1px solid #152233" }}>
+            <th style={{ padding: "6px 8px" }}>Concepto</th>
+            <th style={{ padding: "6px 4px", textAlign: "right" }}>Dist.</th>
+            <th style={{ padding: "6px 4px", textAlign: "right" }}>Util.</th>
+            <th style={{ padding: "6px 8px", textAlign: "right" }}>Rest.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filas.map((f, idx) => (
+            <tr key={idx} style={{ borderBottom: "1px solid #15223333", color: f.esHold ? "#4F7A99" : B.texto, background: f.esHold ? "#1A65A408" : "transparent" }}>
+              <td style={{ padding: "6px 8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: f.esHold ? B.textoSub : B.texto }}>{f.concepto}{f.esHold ? " (fondo)" : ""}</td>
+              <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.dist)}</td>
+              <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.util)}</td>
+              <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{fmt(f.restante)}</td>
+            </tr>
+          ))}
+          {sinCat > 0 && (
+            <tr style={{ borderBottom: "1px solid #15223333", background: "#F59E0B11" }}>
+              <td style={{ padding: "6px 8px", color: "#F59E0B", fontSize: 9, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>⚠ Sin categoría</td>
+              <td style={{ padding: "6px 4px", textAlign: "right" }}>—</td>
+              <td style={{ padding: "6px 4px", textAlign: "right", color: "#F59E0B", whiteSpace: "nowrap" }}>{fmt(sinCat)}</td>
+              <td style={{ padding: "6px 8px", textAlign: "right", color: "#EF4444", whiteSpace: "nowrap" }}>{fmt(-sinCat)}</td>
+            </tr>
+          )}
+          <tr style={{ background: "#0F1C2E", fontWeight: 700, color: "#fff", borderTop: "2px solid #152233" }}>
+            <td style={{ padding: "7px 8px" }}>Totales</td>
+            <td style={{ padding: "7px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalDist)}</td>
+            <td style={{ padding: "7px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalUtil)}</td>
+            <td style={{ padding: "7px 8px", textAlign: "right", color: B.celeste, whiteSpace: "nowrap" }}>{fmt(totalRest)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Dashboard({ registros = [], pagos = [], mesFiltro, saldosGlobales, todasCats }) {
+  const [cuentaDetalle, setCuentaDetalle] = useState(null);
+
+  const saldoTotalGlobal = CUENTAS.reduce((s, c) => s + (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0), 0);
+  const gananciaAcumulada = saldosGlobales.statsCat["Ganancias"]?.restante || 0;
+  
+  const ingresosMes = registros.filter(r => r.fecha.startsWith(mesFiltro)).reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
+  const pagosPendientes = pagos.filter(p => p.mes === mesFiltro && !p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", boxSizing: "border-box" }}>
+      <div>
+        <div style={{ fontSize: 10, color: B.textoSub, textTransform: "uppercase", letterSpacing: 1 }}>RESUMEN CONTROL</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: B.texto, marginTop: 2 }}>Periodo Contable</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
+        {[
+          { label: "SALDO TOTAL CUENTAS", val: fmtDisplay(saldoTotalGlobal), color: B.texto },
+          { label: "GANANCIA ACUMULADA", val: fmtDisplay(gananciaAcumulada), color: "#22C55E" },
+          { label: "INGRESO DEL MES", val: fmtDisplay(ingresosMes), color: B.celeste },
+          { label: "PAGOS PENDIENTES", val: fmtDisplay(pagosPendientes), color: "#FB923C" }
+        ].map((item, i) => (
+          <div key={i} style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 10, color: B.textoSub, fontWeight: 700 }}>{item.label}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.val}</span>
+          </div>
+        ))}
+      </div>
+      <Card style={{ padding: 14 }}>
+        <Lbl>DISTRIBUCIÓN DEL MES</Lbl>
+        <div style={{ height: 12, borderRadius: 6, display: "flex", overflow: "hidden", background: B.fondoBorde, marginBottom: 12 }}>
+          {CUENTAS.map(c => {
+            const val = (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0);
+            const porcentaje = saldoTotalGlobal > 0 && val > 0 ? (val / saldoTotalGlobal) * 100 : 0;
+            if (porcentaje <= 0) return null;
+            return <div key={c.id} style={{ width: `${porcentaje}%`, height: "100%", background: c.color }} />;
+          })}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px" }}>
+          {CUENTAS.map(c => {
+            const val = (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0);
             return (
-                <div style={{ display: "flex", alignItems: "center", background: "#091526", border: "1px solid #152233", borderRadius: 12, overflow: "hidden", ...style }}>
-                    <span style={{ padding: "8px 6px 8px 10px", color: "#4F7A99", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", userSelect: "none" }}>RD$</span>
-                    <input
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        value={displayValue}
-                        onChange={handleChange}
-                        onFocus={handleFocus}
-                        onBlur={handleBlur}
-                        style={{ background: "transparent", border: "none", padding: "8px 10px 8px 2px", color: "#E8F4FD", fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", textAlign: "right" }}
-                    />
-                </div>
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: c.color }} />
+                <span style={{ color: B.texto, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nombre}</span>
+                <span style={{ color: B.textoSub }}>{pct(val, saldoTotalGlobal)}</span>
+              </div>
             );
-        }
-
-        function IconoCustom({ source, size = 18 }) {
-            if (!source) return null;
-            if (source.startsWith("http")) return <img src={source} style={{ width: size, height: size, objectFit: "contain" }} alt="icon" />;
-            if (source.trim().startsWith("<svg")) return <div style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }} dangerouslySetInnerHTML={{__html: source}} />;
-            return <span style={{ fontSize: size }}>{source}</span>;
-        }
-
-        function Card({ children, style = {}, glow = false }) {
-            return <div style={{ background: B.fondoCard, border: `1px solid ${glow ? B.azulOscuro + "99" : B.fondoBorde}`, borderRadius: 20, padding: 18, width: "100%", boxSizing: "border-box", ...style }}>{children}</div>;
-        }
-
-        function Lbl({ children, style = {} }) {
-            return <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: B.textoSub, marginBottom: 8, ...style }}>{children}</div>;
-        }
-
-        function Inp({ style = {}, type = "text", inputMode, ...p }) {
-            return <input type={type} inputMode={inputMode} {...p} style={{ background: "#091526", border: `1px solid ${B.fondoBorde}`, borderRadius: 12, padding: "11px 14px", color: B.texto, fontSize: 15, width: "100%", boxSizing: "border-box", outline: "none", ...style }} />;
-        }
-
-        function Sel({ children, style = {}, ...p }) {
-            return <select {...p} style={{ background: "#091526", border: `1px solid ${B.fondoBorde}`, borderRadius: 12, padding: "11px 14px", color: B.texto, fontSize: 14, width: "100%", boxSizing: "border-box", outline: "none", ...style }}>{children}</select>;
-        }
-
-        function Btn({ children, onClick, v = "primary", style = {}, disabled = false }) {
-            const vs = {
-                primary: { background: `linear-gradient(135deg, ${B.azulOscuro}, ${B.azulMedio})`, color: "#fff", border: "none" },
-                ghost: { background: "transparent", color: B.celeste, border: `1px solid ${B.celeste}44` },
-                danger: { background: "linear-gradient(135deg, #DC2626, #EF4444)", color: "#fff", border: "none" }
-            };
-            return <button onClick={onClick} disabled={disabled} style={{ ...vs[v], borderRadius: 14, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: "100%", boxSizing: "border-box", ...style }}>{children}</button>;
-        }
-
-        function TablaDesgloseCuenta({ cuentaId, registrosDelMes, pagosDelMes, transferencias = [], todasCats, balancesIniciales, mesFiltro }) {
-            const cuentaObj = CUENTAS.find(c => c.id === cuentaId);
-            if (!cuentaObj) return null;
-            const subcats = todasCats.filter(c => c.cuenta === cuentaId);
-            let totalDist = 0, totalUtil = 0, totalRest = 0;
-            const pagosEstasCuenta = pagosDelMes.filter(p => p.ok && p.cuenta === cuentaId);
-            const utilizadoPorCat = {};
-            
-            pagosEstasCuenta.forEach(pago => {
-                const nombrePago = pago.nombre.trim().toLowerCase();
-                if (cuentaId === "nomina" && nombrePago.startsWith("nómina -")) {
-                    const catDestino = pago.semana === 2 ? "1ra Quincena" : pago.semana === 4 ? "2da Quincena" : null;
-                    if (catDestino) { utilizadoPorCat[catDestino] = (utilizadoPorCat[catDestino] || 0) + pago.monto; return; }
-                }
-                const catMatch = subcats.find(sc => sc.nombre.trim().toLowerCase() === nombrePago);
-                if (catMatch) {
-                    utilizadoPorCat[catMatch.nombre] = (utilizadoPorCat[catMatch.nombre] || 0) + pago.monto;
-                } else {
-                    utilizadoPorCat["__sin_cat__"] = (utilizadoPorCat["__sin_cat__"] || 0) + pago.monto;
-                }
-            });
-
-            const filas = subcats.map(cat => {
-                const esHold = cat.nombre.toLowerCase().includes("hold");
-                const inicialSubcat = parseFloat(balancesIniciales[cat.id] || 0);
-                const distMes = registrosDelMes.reduce((sum, r) => sum + (r.items || []).filter(i => i.cat === cat.nombre).reduce((s, i) => s + i.monto, 0), 0);
-                
-                // Impactar cálculo con las Transferencias Internas
-                const transfIn = transferencias.filter(t => t.mes === mesFiltro && t.destino === cat.nombre).reduce((s, t) => s + (parseFloat(t.monto) || 0), 0);
-                const transfOut = transferencias.filter(t => t.mes === mesFiltro && t.origen === cat.nombre).reduce((s, t) => s + (parseFloat(t.monto) || 0), 0);
-                
-                const dist = inicialSubcat + distMes + transfIn - transfOut;
-                const util = esHold ? 0 : (utilizadoPorCat[cat.nombre] || 0);
-                const restante = dist - util;
-                
-                totalDist += dist; totalUtil += util; totalRest += restante;
-                return { concepto: cat.nombre, dist, util, restante, esHold };
-            });
-
-            const sinCat = utilizadoPorCat["__sin_cat__"] || 0;
-            if (sinCat > 0) { totalUtil += sinCat; totalRest -= sinCat; }
-            
-            const nombreCorto = cuentaObj.nombre.length > 16 ? cuentaObj.nombre.slice(0, 15) + "…" : cuentaObj.nombre;
-
-            return (
-                <div style={{ marginTop: 10, background: "#091424", borderRadius: 12, border: "1px solid #1A65A466", width: "100%", boxSizing: "border-box", overflow: "hidden" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#11253E", padding: "8px 10px", borderBottom: "2px solid #152233", overflow: "hidden" }}>
-                        <div style={{ display: "flex", flexDirection: "column", overflow: "hidden", flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: 9, color: B.textoSub, fontWeight: 600, whiteSpace: "nowrap" }}>No. {cuentaObj.num}</span>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                Agua Ruth / {nombreCorto}
-                            </span>
-                        </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: B.celeste, whiteSpace: "nowrap", paddingLeft: 6 }}>
-                            {fmt(totalRest)}
-                        </div>
-                    </div>
-                    <table className="tabla-desglose" style={{ width: "100%", borderCollapse: "collapse", fontSize: 10, textAlign: "left", tableLayout: "fixed" }}>
-                        <colgroup>
-                            <col style={{ width: "38%" }} />
-                            <col style={{ width: "21%" }} />
-                            <col style={{ width: "18%" }} />
-                            <col style={{ width: "23%" }} />
-                        </colgroup>
-                        <thead>
-                            <tr style={{ background: "#0F1C2E", color: B.textoSub, fontWeight: 700, borderBottom: "1px solid #152233" }}>
-                                <th style={{ padding: "6px 8px" }}>Concepto</th>
-                                <th style={{ padding: "6px 4px", textAlign: "right" }}>Dist.</th>
-                                <th style={{ padding: "6px 4px", textAlign: "right" }}>Util.</th>
-                                <th style={{ padding: "6px 8px", textAlign: "right" }}>Rest.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filas.map((f, idx) => (
-                                <tr key={idx} style={{ borderBottom: "1px solid #15223333", color: f.esHold ? "#4F7A99" : B.texto, background: f.esHold ? "#1A65A408" : "transparent" }}>
-                                    <td style={{ padding: "6px 8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: f.esHold ? B.textoSub : B.texto }}>
-                                        {f.concepto}{f.esHold ? " (fondo)" : ""}
-                                    </td>
-                                    <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.dist)}</td>
-                                    <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.util)}</td>
-                                    <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{fmt(f.restante)}</td>
-                                </tr>
-                            ))}
-                            {sinCat > 0 && (
-                                <tr style={{ borderBottom: "1px solid #15223333", background: "#F59E0B11" }}>
-                                    <td style={{ padding: "6px 8px", color: "#F59E0B", fontSize: 9, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>⚠ Sin categoría</td>
-                                    <td style={{ padding: "6px 4px", textAlign: "right" }}>—</td>
-                                    <td style={{ padding: "6px 4px", textAlign: "right", color: "#F59E0B", whiteSpace: "nowrap" }}>{fmt(sinCat)}</td>
-                                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#EF4444", whiteSpace: "nowrap" }}>{fmt(-sinCat)}</td>
-                                </tr>
-                            )}
-                            <tr style={{ background: "#0F1C2E", fontWeight: 700, color: "#fff", borderTop: "2px solid #152233" }}>
-                                <td style={{ padding: "7px 8px" }}>Totales</td>
-                                <td style={{ padding: "7px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalDist)}</td>
-                                <td style={{ padding: "7px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalUtil)}</td>
-                                <td style={{ padding: "7px 8px", textAlign: "right", color: B.celeste, whiteSpace: "nowrap" }}>{fmt(totalRest)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+          })}
+        </div>
+      </Card>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Lbl style={{ marginBottom: 0 }}>ESTADO DE CUENTAS (TOCA PARA DESGLOSAR)</Lbl>
+          {cuentaDetalle && <button onClick={() => setCuentaDetalle(null)} style={{ background: "transparent", border: "none", color: B.celeste, fontSize: 11, cursor: "pointer" }}>✕ Cerrar</button>}
+        </div>
+        {CUENTAS.map(c => {
+          const estaAbierta = cuentaDetalle === c.id;
+          const val = (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0);
+          return (
+            <div key={c.id} style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+              <div onClick={() => setCuentaDetalle(estaAbierta ? null : c.id)} style={{ background: B.fondoCard, border: `1px solid ${estaAbierta ? c.color : B.fondoBorde}`, borderRadius: 16, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <IconoCustom source={SVG_CUENTAS[c.id]} size={18} />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{c.nombre}</div>
+                    {!estaAbierta && <div style={{ fontSize: 10, color: B.textoSub }}>No. {c.num}</div>}
+                  </div>
                 </div>
-            );
-        }
+                <div style={{ fontSize: 15, fontWeight: 700, color: c.color }}>{fmtDisplay(val)}</div>
+              </div>
+              {estaAbierta && <TablaDesgloseCuenta cuentaId={c.id} todasCats={todasCats} saldosGlobales={saldosGlobales} />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-        function Dashboard({ registros = [], pagos = [], transferencias = [], todasCats = [], balancesIniciales = {}, mesFiltro }) {
-            const [cuentaDetalle, setCuentaDetalle] = useState(null);
-            const registrosDelMes = registros.filter(r => r.fecha.startsWith(mesFiltro));
-            const ingresosMes = registrosDelMes.reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
-            const pagosDelMes = pagos.filter(p => p.mes === mesFiltro);
-            const pagosPendientes = pagosDelMes.filter(p => !p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
-            
-            const saldosCuentas = {};
-            CUENTAS.forEach(c => {
-                const subcatsDeCuenta = todasCats.filter(cat => cat.cuenta === c.id);
-                saldosCuentas[c.id] = subcatsDeCuenta.reduce((sum, cat) => sum + (parseFloat(balancesIniciales[cat.id]) || 0), 0);
-            });
+function Distribucion({ onGuardar, todasCats = [] }) {
+  const [fecha, setFecha] = useState(hoy());
+  const [ingreso, setIngreso] = useState("");
+  const [items, setItems] = useState([{ cat: "", monto: "" }]);
+  const [ok, setOk] = useState(false);
+  
+  const totaling = parseFloat(ingreso) || 0;
+  const totalDist = items.reduce((s, i) => s + (parseFloat(i.monto) || 0), 0);
+  const diff = totaling - totalDist;
+  
+  const addItem = () => setItems([...items, { cat: "", monto: "" }]);
+  const upd = (i, f, v) => { const a = [...items]; a[i][f] = v; setItems(a); };
+  const rem = (i) => setItems(items.filter((_, x) => x !== i));
+  const guardar = () => {
+    if (!fecha || totaling === 0 || Math.abs(diff) > 0.01) return;
+    onGuardar({ id: Date.now().toString(), fecha, ingreso: totaling, items: items.filter(i => i.cat && i.monto).map(i => ({ ...i, monto: parseFloat(i.monto) || 0 })) });
+    setIngreso(""); setItems([{ cat: "", monto: "" }]);
+    setOk(true); setTimeout(() => setOk(false), 3000);
+  };
+  
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <Lbl>ASIGNACIÓN COMPLETA DEL DÍA</Lbl>
+      {ok && <Card style={{ background: "#14532D", textAlign: "center", color: "#22C55E", fontWeight: 700 }}>Guardado e indexado en balances</Card>}
+      <Card><Lbl>FECHA CONTABLE</Lbl><Inp type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></Card>
+      <Card glow>
+        <Lbl>INGRESO BRUTO EVALUADO</Lbl>
+        <Inp type="text" inputMode="decimal" placeholder="0.00" value={ingreso} onChange={e => setIngreso(e.target.value.replace(/[^0-9.,]/g, ''))} style={{ fontSize: 20, fontWeight: 700, color: B.celeste }} />
+      </Card>
+      <Card>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <Lbl style={{ marginBottom: 0 }}>DISTRIBUCIÓN DE FONDOS</Lbl>
+          <button onClick={addItem} style={{ background: `${B.azulOscuro}33`, border: `1px solid ${B.azulOscuro}`, color: B.celeste, borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>+ Fila</button>
+        </div>
+        {items.map((it, i) => (
+          <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 8 }}>
+            <Sel value={it.cat} onChange={e => upd(i, "cat", e.target.value)} style={{ flex: 2 }}>
+              <option value="">Concepto...</option>
+              {CUENTAS.map(cu => (
+                <optgroup key={cu.id} label={cu.nombre}>
+                  {todasCats.filter(c => c.cuenta === cu.id).map(c => (
+                    <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </Sel>
+            <Inp type="text" inputMode="decimal" placeholder="0.00" value={it.monto} onChange={e => upd(i, "monto", e.target.value.replace(/[^0-9.,]/g, ''))} style={{ flex: 1.5 }} />
+            <button onClick={() => rem(i)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 24, padding: "0 6px", cursor: "pointer" }}>×</button>
+          </div>
+        ))}
+        {totaling > 0 && (
+          <div style={{ fontSize: 13, color: Math.abs(diff) < 0.01 ? "#22C55E" : diff > 0 ? "#F59E0B" : "#EF4444", fontWeight: 600, marginTop: 8 }}>
+            {Math.abs(diff) < 0.01 ? "Distribución Cuadrada" : diff > 0 ? `Por asignar: ${fmtDisplay(diff)}` : `Excedido: ${fmtDisplay(Math.abs(diff))}`}
+          </div>
+        )}
+      </Card>
+      <Btn onClick={guardar} disabled={totaling === 0 || Math.abs(diff) > 0.01}>Procesar Distribución</Btn>
+    </div>
+  );
+}
 
-            registros.forEach(r => {
-                if (r.fecha.slice(0, 7) <= mesFiltro) {
-                    (r.items || []).forEach(i => {
-                        let cId = "general";
-                        const catObj = todasCats.find(c => c.nombre === i.cat);
-                        if (catObj) cId = catObj.cuenta;
-                        if (saldosCuentas[cId] !== undefined) saldosCuentas[cId] += parseFloat(i.monto) || 0;
-                    });
-                }
-            });
+function Pagos({ pagos = [], setPagos, mesFiltro }) {
+  const [sem, setSem] = useState(1);
+  const [editMode, setEditMode] = useState(false);
+  const [nuevo, setNuevo] = useState({ semana: 1, nombre: "", monto: "", cuenta: "general" });
+  const [idEdicionInline, setIdEdicionInline] = useState(null);
+  const [nombreEdicion, setNombreEdicion] = useState("");
+  const [montoEdicion, setMontoEdicion] = useState("");
+  const [cuentaEdicion, setCuentaEdicion] = useState("general");
 
-            pagos.forEach(p => {
-                if (p.ok && p.mes <= mesFiltro) {
-                    const cuentaDestino = p.cuenta || "general";
-                    if (saldosCuentas[cuentaDestino] !== undefined) saldosCuentas[cuentaDestino] -= parseFloat(p.monto) || 0;
-                }
-            });
+  const pagosDelMes = pagos.filter(p => p.mes === mesFiltro);
+  const fSem = (s) => pagosDelMes.filter(p => p.semana === s);
+  const tots = (s) => fSem(s).reduce((a, p) => a + (parseFloat(p.monto) || 0), 0);
+  const togglePago = (id) => setPagos(pagos.map(p => p.id === id ? { ...p, ok: !p.ok } : p));
+  const eliminarItem = (id) => setPagos(pagos.filter(p => p.id !== id));
+  
+  const activarEdicionInline = (p) => { 
+    setIdEdicionInline(p.id); setNombreEdicion(p.nombre); setMontoEdicion(p.monto); setCuentaEdicion(p.cuenta || "general"); 
+  };
+  const guardarEdicionInline = () => {
+    setPagos(pagos.map(p => p.id === idEdicionInline ? { ...p, nombre: nombreEdicion, monto: parseFloat(montoEdicion) || 0, cuenta: cuentaEdicion } : p));
+    setIdEdicionInline(null);
+  };
+  
+  const agregarItem = () => {
+    if (!nuevo.nombre || !nuevo.monto) return;
+    setPagos([...pagos, { id: Date.now().toString(), semana: nuevo.semana, nombre: nuevo.nombre, monto: parseFloat(nuevo.monto) || 0, cuenta: nuevo.cuenta, ok: false, mes: mesFiltro }]);
+    setNuevo({ semana: sem, nombre: "", monto: "", cuenta: "general" });
+  };
 
-            // Impactar el cálculo maestro del saldo con las Transferencias
-            transferencias.forEach(t => {
-                if (t.mes <= mesFiltro) {
-                    if (saldosCuentas[t.origenCuenta] !== undefined) saldosCuentas[t.origenCuenta] -= parseFloat(t.monto) || 0;
-                    if (saldosCuentas[t.destinoCuenta] !== undefined) saldosCuentas[t.destinoCuenta] += parseFloat(t.monto) || 0;
-                }
-            });
-
-            const saldoTotalGlobal = Object.values(saldosCuentas).reduce((a, b) => a + b, 0);
-            const gananciaAcumulada = saldosCuentas["inversiones"] || 0;
-
-            return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", boxSizing: "border-box" }}>
-                    <div>
-                        <div style={{ fontSize: 10, color: B.textoSub, textTransform: "uppercase", letterSpacing: 1 }}>RESUMEN CONTROL</div>
-                        <div style={{ fontSize: 20, fontWeight: 700, color: B.texto, marginTop: 2 }}>Periodo Contable</div>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Presupuesto Semanal</div>
+          <div style={{ fontSize: 12, color: B.textoSub }}>Egresos obligatorios programados</div>
+        </div>
+        <button onClick={() => { setEditMode(!editMode); setIdEdicionInline(null); }} style={{ background: "transparent", border: `1px solid ${B.celeste}`, color: B.celeste, padding: "6px 12px", borderRadius: 10, fontSize: 13, cursor: "pointer" }}>
+          {editMode ? "✓ Ver Panel" : "Editar Estructura"}
+        </button>
+      </div>
+      {!editMode ? (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, width: "100%" }}>
+            {[1, 2, 3, 4].map(s => (
+              <button key={s} onClick={() => { setSem(s); setIdEdicionInline(null); }} style={{ background: sem === s ? "#1A65A433" : B.fondoCard, border: `1px solid ${sem === s ? B.azulOscuro : B.fondoBorde}`, borderRadius: 12, padding: 8, color: B.texto, cursor: "pointer" }}>
+                <div style={{ fontSize: 9, color: B.textoSub }}>SEM {s}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2 }}>{fmt(tots(s)).split(".")[0]}</div>
+              </button>
+            ))}
+          </div>
+          <Card>
+            <Lbl>CUOTAS SEMANA {sem}</Lbl>
+            {fSem(sem).length === 0 && <div style={{ fontSize: 13, color: B.textoSub, textAlign: "center", padding: "10px 0" }}>No hay rubros programados.</div>}
+            {fSem(sem).map(p => {
+              const esEditando = idEdicionInline === p.id;
+              return (
+                <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 0", borderBottom: `1px solid ${B.fondoBorde}44` }}>
+                  {esEditando ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <Inp value={nombreEdicion} onChange={e => setNombreEdicion(e.target.value)} style={{ flex: 2, padding: "6px 10px", fontSize: 13 }} placeholder="Nombre" />
+                        <Inp type="text" inputMode="decimal" value={montoEdicion} onChange={e => setMontoEdicion(e.target.value.replace(/[^0-9.,]/g, ''))} style={{ flex: 1.2, padding: "6px 10px", fontSize: 13 }} placeholder="Monto" />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+                        <Sel value={cuentaEdicion} onChange={e => setCuentaEdicion(e.target.value)} style={{ padding: "6px 10px", fontSize: 12, flex: 1 }}>
+                          {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                        </Sel>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={guardarEdicionInline} style={{ background: "#22C55E22", border: "1px solid #22C55E", color: "#22C55E", padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Guardar</button>
+                          <button onClick={() => setIdEdicionInline(null)} style={{ background: "transparent", border: `1px solid ${B.textoSub}`, color: B.textoSub, padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>✕</button>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
-                        {[
-                            { label: "SALDO TOTAL CUENTAS", val: fmtDisplay(saldoTotalGlobal), color: B.texto },
-                            { label: "GANANCIA ACUMULADA", val: fmtDisplay(gananciaAcumulada), color: "#22C55E" },
-                            { label: "INGRESO DEL MES", val: fmtDisplay(ingresosMes), color: B.celeste },
-                            { label: "PAGOS PENDIENTES", val: fmtDisplay(pagosPendientes), color: "#FB923C" }
-                        ].map((item, i) => (
-                            <div key={i} style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
-                                <span style={{ fontSize: 10, color: B.textoSub, fontWeight: 700 }}>{item.label}</span>
-                                <span style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.val}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <Card style={{ padding: 14 }}>
-                        <Lbl>DISTRIBUCIÓN DEL MES</Lbl>
-                        <div style={{ height: 12, borderRadius: 6, display: "flex", overflow: "hidden", background: B.fondoBorde, marginBottom: 12 }}>
-                            {CUENTAS.map(c => {
-                                const porcentaje = saldoTotalGlobal > 0 ? ((saldosCuentas[c.id] || 0) / saldoTotalGlobal) * 100 : 0;
-                                if (porcentaje <= 0) return null;
-                                return <div key={c.id} style={{ width: `${porcentaje}%`, height: "100%", background: c.color }} />;
-                            })}
-                        </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px" }}>
-                            {CUENTAS.map(c => (
-                                <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
-                                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: c.color }} />
-                                    <span style={{ color: B.texto, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nombre}</span>
-                                    <span style={{ color: B.textoSub }}>{pct(saldosCuentas[c.id] || 0, saldoTotalGlobal)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Lbl style={{ marginBottom: 0 }}>ESTADO DE CUENTAS (TOCA PARA DESGLOSAR)</Lbl>
-                            {cuentaDetalle && <button onClick={() => setCuentaDetalle(null)} style={{ background: "transparent", border: "none", color: B.celeste, fontSize: 11, cursor: "pointer" }}>✕ Cerrar</button>}
-                        </div>
-                        {CUENTAS.map(c => {
-                            const estaAbierta = cuentaDetalle === c.id;
-                            return (
-                                <div key={c.id} style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                                    <div onClick={() => setCuentaDetalle(estaAbierta ? null : c.id)} style={{ background: B.fondoCard, border: `1px solid ${estaAbierta ? c.color : B.fondoBorde}`, borderRadius: 16, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                            <IconoCustom source={SVG_CUENTAS[c.id]} size={18} />
-                                            <div>
-                                                <div style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{c.nombre}</div>
-                                                {!estaAbierta && <div style={{ fontSize: 10, color: B.textoSub }}>No. {c.num}</div>}
-                                            </div>
-                                        </div>
-                                        <div style={{ fontSize: 15, fontWeight: 700, color: c.color }}>{fmtDisplay(saldosCuentas[c.id] || 0)}</div>
-                                    </div>
-                                    {estaAbierta && (
-                                        <TablaDesgloseCuenta
-                                            cuentaId={c.id}
-                                            registrosDelMes={registrosDelMes}
-                                            pagosDelMes={pagosDelMes}
-                                            transferencias={transferencias}
-                                            todasCats={todasCats}
-                                            balancesIniciales={balancesIniciales}
-                                            mesFiltro={mesFiltro}
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            );
-        }
-
-        function Distribucion({ onGuardar, todasCats = [] }) {
-            const [fecha, setFecha] = useState(hoy());
-            const [ingreso, setIngreso] = useState("");
-            const [items, setItems] = useState([{ cat: "", monto: "" }]);
-            const [ok, setOk] = useState(false);
-            const totaling = parseFloat(ingreso) || 0;
-            const totalDist = items.reduce((s, i) => s + (parseFloat(i.monto) || 0), 0);
-            const diff = totaling - totalDist;
-            
-            const addItem = () => setItems([...items, { cat: "", monto: "" }]);
-            const upd = (i, f, v) => { const a = [...items]; a[i][f] = v; setItems(a); };
-            const rem = (i) => setItems(items.filter((_, x) => x !== i));
-            
-            const guardar = () => {
-                if (!fecha || totaling === 0 || Math.abs(diff) > 0.01) return;
-                onGuardar({ id: Date.now(), fecha, ingreso: totaling, items: items.filter(i => i.cat && i.monto).map(i => ({ ...i, monto: parseFloat(i.monto) || 0 })) });
-                setIngreso(""); setItems([{ cat: "", monto: "" }]);
-                setOk(true); setTimeout(() => setOk(false), 3000);
-            };
-            
-            return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-                    <Lbl>ASIGNACIÓN COMPLETA DEL DÍA</Lbl>
-                    {ok && <Card style={{ background: "#14532D", textAlign: "center", color: "#22C55E", fontWeight: 700 }}>Guardado e indexado en balances</Card>}
-                    <Card><Lbl>FECHA CONTABLE</Lbl><Inp type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></Card>
-                    <Card glow>
-                        <Lbl>INGRESO BRUTO EVALUADO</Lbl>
-                        <Inp type="text" inputMode="decimal" placeholder="0.00" value={ingreso} onChange={e => setIngreso(e.target.value.replace(/[^0-9.,]/g, ''))} style={{ fontSize: 20, fontWeight: 700, color: B.celeste }} />
-                    </Card>
-                    <Card>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                            <Lbl style={{ marginBottom: 0 }}>DISTRIBUCIÓN DE FONDOS</Lbl>
-                            <button onClick={addItem} style={{ background: `${B.azulOscuro}33`, border: `1px solid ${B.azulOscuro}`, color: B.celeste, borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>+ Fila</button>
-                        </div>
-                        {items.map((it, i) => (
-                            <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 8 }}>
-                                <Sel value={it.cat} onChange={e => upd(i, "cat", e.target.value)} style={{ flex: 2 }}>
-                                    <option value="">Concepto...</option>
-                                    {CUENTAS.map(cu => (
-                                        <optgroup key={cu.id} label={cu.nombre}>
-                                            {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                                                <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </Sel>
-                                <Inp type="text" inputMode="decimal" placeholder="0.00" value={it.monto} onChange={e => upd(i, "monto", e.target.value.replace(/[^0-9.,]/g, ''))} style={{ flex: 1.5 }} />
-                                <button onClick={() => rem(i)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 20, cursor: "pointer" }}>x</button>
-                            </div>
-                        ))}
-                        {totaling > 0 && (
-                            <div style={{ fontSize: 13, color: Math.abs(diff) < 0.01 ? "#22C55E" : diff > 0 ? "#F59E0B" : "#EF4444", fontWeight: 600, marginTop: 8 }}>
-                                {Math.abs(diff) < 0.01 ? "Distribución Cuadrada" : diff > 0 ? `Por asignar: ${fmtDisplay(diff)}` : `Excedido: ${fmtDisplay(Math.abs(diff))}`}
-                            </div>
-                        )}
-                    </Card>
-                    <Btn onClick={guardar} disabled={totaling === 0 || Math.abs(diff) > 0.01}>Procesar Distribución</Btn>
-                </div>
-            );
-        }
-
-        function Pagos({ pagos = [], setPagos, mesFiltro }) {
-            const [sem, setSem] = useState(1);
-            const [editMode, setEditMode] = useState(false);
-            const [nuevo, setNuevo] = useState({ semana: 1, nombre: "", monto: "", cuenta: "general" });
-            const [idEdicionInline, setIdEdicionInline] = useState(null);
-            const [nombreEdicion, setNombreEdicion] = useState("");
-            const [montoEdicion, setMontoEdicion] = useState("");
-            const [cuentaEdicion, setCuentaEdicion] = useState("general");
-            
-            const pagosDelMes = pagos.filter(p => p.mes === mesFiltro);
-            const fSem = (s) => pagosDelMes.filter(p => p.semana === s);
-            const tots = (s) => fSem(s).reduce((a, p) => a + (parseFloat(p.monto) || 0), 0);
-            
-            const togglePago = (id) => setPagos(pagos.map(p => p.id === id ? { ...p, ok: !p.ok } : p));
-            const eliminarItem = (id) => setPagos(pagos.filter(p => p.id !== id));
-            
-            const activarEdicionInline = (p) => { 
-                setIdEdicionInline(p.id); setNombreEdicion(p.nombre); setMontoEdicion(p.monto); setCuentaEdicion(p.cuenta || "general"); 
-            };
-            const guardarEdicionInline = () => {
-                setPagos(pagos.map(p => p.id === idEdicionInline ? { ...p, nombre: nombreEdicion, monto: parseFloat(montoEdicion) || 0, cuenta: cuentaEdicion } : p));
-                setIdEdicionInline(null);
-            };
-            
-            const agregarItem = () => {
-                if (!nuevo.nombre || !nuevo.monto) return;
-                setPagos([...pagos, { id: Date.now().toString(), semana: nuevo.semana, nombre: nuevo.nombre, monto: parseFloat(nuevo.monto) || 0, cuenta: nuevo.cuenta, ok: false, mes: mesFiltro }]);
-                setNuevo({ semana: sem, nombre: "", monto: "", cuenta: "general" });
-            };
-
-            return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div>
-                            <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Presupuesto Semanal</div>
-                            <div style={{ fontSize: 12, color: B.textoSub }}>Egresos obligatorios programados</div>
-                        </div>
-                        <button onClick={() => { setEditMode(!editMode); setIdEdicionInline(null); }} style={{ background: "transparent", border: `1px solid ${B.celeste}`, color: B.celeste, padding: "6px 12px", borderRadius: 10, fontSize: 13, cursor: "pointer" }}>
-                            {editMode ? "✓ Ver Panel" : "Editar Estructura"}
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
+                      <button onClick={() => togglePago(p.id)} style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.ok ? "#22C55E" : B.fondoBorde}`, background: p.ok ? "#22C55E" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>
+                        {p.ok ? "✓" : ""}
+                      </button>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, color: p.ok ? B.textoSub : B.texto }}>{p.nombre}</div>
+                        <div style={{ fontSize: 9, color: B.textoSub, textTransform: "uppercase" }}>SALIDA: {p.cuenta}</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: p.ok ? B.textoSub : B.texto }}>{fmtDisplay(p.monto)}</span>
+                        <button onClick={() => activarEdicionInline(p)} style={{ background: "transparent", border: "none", color: "#FFFFFF", opacity: 0.6, fontSize: 14, cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}>
+                          <IconoCustom source={SVG_EDITAR} size={16} />
                         </button>
+                      </div>
                     </div>
-                    {!editMode ? (
-                        <>
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, width: "100%" }}>
-                                {[1, 2, 3, 4].map(s => (
-                                    <button key={s} onClick={() => { setSem(s); setIdEdicionInline(null); }} style={{ background: sem === s ? "#1A65A433" : B.fondoCard, border: `1px solid ${sem === s ? B.azulOscuro : B.fondoBorde}`, borderRadius: 12, padding: 8, color: B.texto, cursor: "pointer" }}>
-                                        <div style={{ fontSize: 9, color: B.textoSub }}>SEM {s}</div>
-                                        <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2 }}>{fmt(tots(s)).split(".")[0]}</div>
-                                    </button>
-                                ))}
-                            </div>
-                            <Card>
-                                <Lbl>CUOTAS SEMANA {sem}</Lbl>
-                                {fSem(sem).length === 0 && <div style={{ fontSize: 13, color: B.textoSub, textAlign: "center", padding: "10px 0" }}>No hay rubros programados.</div>}
-                                {fSem(sem).map(p => {
-                                    const esEditando = idEdicionInline === p.id;
-                                    return (
-                                        <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 0", borderBottom: `1px solid ${B.fondoBorde}44` }}>
-                                            {esEditando ? (
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
-                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                        <Inp value={nombreEdicion} onChange={e => setNombreEdicion(e.target.value)} style={{ flex: 2, padding: "6px 10px", fontSize: 13 }} placeholder="Nombre" />
-                                                        <Inp type="text" inputMode="decimal" value={montoEdicion} onChange={e => setMontoEdicion(e.target.value.replace(/[^0-9.,]/g, ''))} style={{ flex: 1.2, padding: "6px 10px", fontSize: 13 }} placeholder="Monto" />
-                                                    </div>
-                                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
-                                                        <Sel value={cuentaEdicion} onChange={e => setCuentaEdicion(e.target.value)} style={{ padding: "6px 10px", fontSize: 12, flex: 1 }}>
-                                                            {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                                                        </Sel>
-                                                        <div style={{ display: "flex", gap: 6 }}>
-                                                            <button onClick={guardarEdicionInline} style={{ background: "#22C55E22", border: "1px solid #22C55E", color: "#22C55E", padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Guardar</button>
-                                                            <button onClick={() => setIdEdicionInline(null)} style={{ background: "transparent", border: `1px solid ${B.textoSub}`, color: B.textoSub, padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>✕</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                                                    <button onClick={() => togglePago(p.id)} style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.ok ? "#22C55E" : B.fondoBorde}`, background: p.ok ? "#22C55E" : "transparent", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>
-                                                        {p.ok ? "✓" : ""}
-                                                    </button>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ fontSize: 14, color: p.ok ? B.textoSub : B.texto }}>{p.nombre}</div>
-                                                        <div style={{ fontSize: 9, color: B.textoSub, textTransform: "uppercase" }}>SALIDA: {p.cuenta}</div>
-                                                    </div>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                        <span style={{ fontSize: 14, fontWeight: 700, color: p.ok ? B.textoSub : B.texto }}>{fmtDisplay(p.monto)}</span>
-                                                        <button onClick={() => activarEdicionInline(p)} style={{ background: "transparent", border: "none", color: "#FFFFFF", opacity: 0.6, fontSize: 14, cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}>
-                                                            <IconoCustom source={SVG_EDITAR} size={16} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </Card>
-                        </>
+                  )}
+                </div>
+              );
+            })}
+          </Card>
+        </>
+      ) : (
+        <Card style={{ border: `1px solid ${B.azulMedio}` }}>
+          <Lbl style={{ color: B.celeste }}>ORGANIZADOR COMPLETO DEL MES</Lbl>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 6 }}>
+              <Sel value={nuevo.semana} onChange={e => setNuevo({ ...nuevo, semana: parseInt(e.target.value) })}>
+                <option value={1}>Sem 1</option><option value={2}>Sem 2</option>
+                <option value={3}>Sem 3</option><option value={4}>Sem 4</option>
+              </Sel>
+              <Inp placeholder="Gasto u Obligación" value={nuevo.nombre} onChange={e => setNuevo({ ...nuevo, nombre: e.target.value })} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 6 }}>
+              <Sel value={nuevo.cuenta} onChange={e => setNuevo({ ...nuevo, cuenta: e.target.value })}>
+                {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </Sel>
+              <Inp type="text" inputMode="decimal" placeholder="0.00" value={nuevo.monto} onChange={e => setNuevo({ ...nuevo, monto: e.target.value.replace(/[^0-9.,]/g, '') })} />
+            </div>
+            <Btn onClick={agregarItem}>+ Insertar Obligación</Btn>
+          </div>
+          <Lbl style={{ marginTop: 14 }}>RUBROS ASIGNADOS AL MOMENTO</Lbl>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 200, overflowY: "auto" }}>
+            {pagosDelMes.map(p => (
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#091424", padding: "8px 10px", borderRadius: 10 }}>
+                <span style={{ fontSize: 10, color: B.textoSub, minWidth: 26 }}>S{p.semana}</span>
+                <span style={{ flex: 1, fontSize: 13, color: B.texto, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: B.celeste }}>{fmt(p.monto).split(".")[0]}</span>
+                <button onClick={() => eliminarItem(p.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 24, padding: "0 6px", cursor: "pointer" }}>×</button>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) {
+  const [editId, setEditId] = useState(null);
+  const [editFecha, setEditFecha] = useState("");
+  const [editIngreso, setEditIngreso] = useState("");
+  const [editItems, setEditItems] = useState([]);
+
+  const registrosDelMes = registros.filter(r => r.fecha.startsWith(mesFiltro));
+
+  const comenzarEdicion = (reg) => { 
+    setEditId(reg.id); setEditFecha(reg.fecha); setEditIngreso(reg.ingreso); setEditItems([...reg.items]); 
+  };
+  const guardarEdicion = () => {
+    const totalBruto = parseFloat(editIngreso) || 0;
+    const totalDist = editItems.reduce((acc, cur) => acc + (parseFloat(cur.monto) || 0), 0);
+    if (Math.abs(totalBruto - totalDist) > 0.02) { alert('Error: La distribución no está cuadrada.'); return; }
+    
+    setRegistros(registros.map(r => r.id === editId ? { id: editId, fecha: editFecha, ingreso: totalBruto, items: editItems.filter(i => i.cat && i.monto).map(i => ({ ...i, monto: parseFloat(i.monto) || 0 })) } : r));
+    setEditId(null);
+  };
+  
+  const eliminarRegistro = (id) => { 
+    if (confirm("¿Estás seguro de eliminar esta distribución?")) setRegistros(registros.filter(r => r.id !== id)); 
+  };
+  const updItem = (index, field, value) => { const copy = [...editItems]; copy[index][field] = value; setEditItems(copy); };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+      <Lbl>HISTORIAL DE DISTRIBUCIONES DEL PERIODO</Lbl>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {registrosDelMes.length === 0 && <div style={{ color: B.textoSub, textAlign: "center", padding: 20 }}>No hay distribuciones.</div>}
+        
+        {[...registrosDelMes].reverse().map(r => (
+          editId === r.id ? (
+            <Card key={`edit-${r.id}`} style={{ border: `1px solid ${B.celeste}` }}>
+              <Lbl style={{ color: B.celeste }}>EDITAR REGISTRO CONTABLE</Lbl>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
+                <Inp type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} />
+                <Inp type="text" inputMode="decimal" value={editIngreso} onChange={e => setEditIngreso(e.target.value.replace(/[^0-9.,]/g, ''))} />
+                {editItems.map((it, idx) => (
+                  <div key={idx} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    <Sel value={it.cat} onChange={e => updItem(idx, "cat", e.target.value)} style={{ flex: 2 }}>
+                      {CUENTAS.map(cu => (
+                        <optgroup key={cu.id} label={cu.nombre}>
+                          {todasCats.filter(c => c.cuenta === cu.id).map(c => (
+                            <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </Sel>
+                    <Inp type="text" inputMode="decimal" value={it.monto} onChange={e => updItem(idx, "monto", e.target.value.replace(/[^0-9.,]/g, ''))} style={{ flex: 1.5 }} />
+                  </div>
+                ))}
+                
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+                  <button onClick={() => setEditItems([...editItems, {cat: "", monto: ""}])} style={{ background: "transparent", color: B.celeste, border: `1px solid ${B.celeste}88`, borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>+ Agregar concepto</button>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <Btn onClick={guardarEdicion}>Guardar</Btn>
+                  <Btn onClick={() => setEditId(null)} v="ghost">Cancelar</Btn>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <Card key={r.id} style={{ padding: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{r.fecha.split("-").reverse().join("/")}</span>
+                  <div style={{ fontSize: 11, color: B.textoSub }}>Monto Bruto: <span style={{ color: B.celeste }}>{fmtDisplay(r.ingreso)}</span></div>
+                </div>
+                <div style={{ display: "flex", gap: 14, marginRight: 4 }}>
+                  <button onClick={() => comenzarEdicion(r)} style={{ background: "transparent", border: "none", color: B.celeste, cursor: "pointer", fontSize: 20, padding: "4px" }}>✎</button>
+                  <button onClick={() => eliminarRegistro(r.id)} style={{ background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", fontSize: 20, padding: "4px" }}>✕</button>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, background: "#06111F", padding: 8, borderRadius: 10 }}>
+                {r.items.map((it, idx) => (
+                  <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                    <span style={{ color: B.texto }}>• {it.cat}</span>
+                    <span style={{ color: B.textoSub, fontWeight: 600 }}>{fmtDisplay(it.monto)}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, setTodasCats, transferencias, setTransferencias, mesFiltro, saldosGlobales }) {
+  const [nuevaSubcat, setNuevaSubcat] = useState("");
+  const [cuentaSeleccionada, setCuentaSeleccionada] = useState("general");
+  const [cuentaExpandida, setCuentaExpandida] = useState(null);
+  const [editandoNombreId, setEditandoNombreId] = useState(null);
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
+  
+  // Estados Transferencias Internas
+  const [mostrarTransf, setMostrarTransf] = useState(false);
+  const [trOrigen, setTrOrigen] = useState("");
+  const [trDestino, setTrDestino] = useState("");
+  const [trMonto, setTrMonto] = useState(0);
+
+  const toggleSeccion = (cuentaId) => setSeccionesAbiertas(prev => ({ ...prev, [cuentaId]: !prev[cuentaId] }));
+  
+  const agregarSubcategoria = () => {
+    if (!nuevaSubcat.trim()) return;
+    const cuentaObj = CUENTAS.find(c => c.id === cuentaSeleccionada);
+    setTodasCats([...todasCats, { id: "sub_" + Date.now(), nombre: nuevaSubcat.trim(), cuenta: cuentaSeleccionada, color: cuentaObj ? cuentaObj.color : "#4EA5E0" }]);
+    setNuevaSubcat("");
+    setSeccionesAbiertas(prev => ({ ...prev, [cuentaSeleccionada]: true }));
+  };
+  
+  const eliminarSubcategoria = (id) => setTodasCats(todasCats.filter(c => c.id !== id));
+
+  const iniciarEdicionNombre = (cat) => { setEditandoNombreId(cat.id); setNuevoNombre(cat.nombre); };
+  const guardarNombre = () => {
+    if (!nuevoNombre.trim()) return;
+    setTodasCats(todasCats.map(c => c.id === editandoNombreId ? { ...c, nombre: nuevoNombre.trim() } : c));
+    setEditandoNombreId(null);
+  };
+
+  const moverCat = (id, direction) => {
+    const index = todasCats.findIndex(c => c.id === id);
+    if (index < 0) return;
+    const cat = todasCats[index];
+    let targetIndex = -1;
+    if (direction === -1) {
+      for (let i = index - 1; i >= 0; i--) { if (todasCats[i].cuenta === cat.cuenta) { targetIndex = i; break; } }
+    } else {
+      for (let i = index + 1; i < todasCats.length; i++) { if (todasCats[i].cuenta === cat.cuenta) { targetIndex = i; break; } }
+    }
+    if (targetIndex !== -1) {
+      const newCats = [...todasCats];
+      newCats[index] = newCats[targetIndex];
+      newCats[targetIndex] = cat;
+      setTodasCats(newCats);
+    }
+  };
+
+  const ejecutarTransferencia = () => {
+    const montoNum = parseFloat(trMonto);
+    if (!trOrigen || !trDestino || isNaN(montoNum) || montoNum <= 0) return;
+    if (trOrigen === trDestino) { alert("La categoría de origen y destino deben ser distintas."); return; }
+    
+    const disp = saldosGlobales.statsCat[trOrigen]?.restante || 0;
+    if (montoNum > disp) { alert(`Fondos insuficientes. Disponible: ${fmt(disp)}`); return; }
+
+    const catOr = todasCats.find(c => c.nombre === trOrigen);
+    const catDe = todasCats.find(c => c.nombre === trDestino);
+    
+    setTransferencias([...transferencias, {
+      id: Date.now().toString(),
+      mes: mesFiltro,
+      origen: trOrigen,
+      origenCuenta: catOr.cuenta,
+      destino: trDestino,
+      destinoCuenta: catDe.cuenta,
+      monto: montoNum
+    }]);
+    setTrOrigen(""); setTrDestino(""); setTrMonto(0);
+    setMostrarTransf(false);
+  };
+
+  const minimalistSelectStyle = { background: "transparent", border: "none", borderBottom: `2px solid ${B.celeste}44`, borderRadius: 0, padding: "8px 0", fontSize: 15, color: B.texto, outline: "none" };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Panel de Cuentas</div>
+          <div style={{ fontSize: 12, color: B.textoSub }}>Configura y reasigna liquidez</div>
+        </div>
+        <button onClick={() => setMostrarTransf(!mostrarTransf)} style={{ background: "transparent", border: `1px solid ${B.celeste}`, color: B.celeste, padding: "6px 12px", borderRadius: 10, fontSize: 13, cursor: "pointer", fontWeight: 600 }}>
+          {mostrarTransf ? "✕ Cerrar Panel" : "⇄ Mover Fondos"}
+        </button>
+      </div>
+
+      {mostrarTransf && (
+        <Card style={{ border: `1px solid ${B.celeste}`, background: "#0C1828" }}>
+          <Lbl style={{ color: B.celeste }}>TRANSFERENCIA INTERNA DE FONDOS</Lbl>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <Lbl style={{ marginBottom: 4 }}>De (Sale el dinero)</Lbl>
+              <select value={trOrigen} onChange={e => setTrOrigen(e.target.value)} style={minimalistSelectStyle}>
+                <option value="" style={{ color: "#000" }}>Seleccionar Origen...</option>
+                {todasCats.map(c => <option key={`o-${c.id}`} value={c.nombre} style={{ color: "#000" }}>{c.nombre} (Disp: {fmt(saldosGlobales.statsCat[c.nombre]?.restante || 0)})</option>)}
+              </select>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <Lbl style={{ marginBottom: 4 }}>Para (Entra el dinero)</Lbl>
+              <select value={trDestino} onChange={e => setTrDestino(e.target.value)} style={minimalistSelectStyle}>
+                <option value="" style={{ color: "#000" }}>Seleccionar Destino...</option>
+                {todasCats.map(c => <option key={`d-${c.id}`} value={c.nombre} disabled={c.nombre === trOrigen} style={{ color: "#000" }}>{c.nombre}</option>)}
+              </select>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", marginBottom: 6 }}>
+              <Lbl style={{ marginBottom: 4 }}>Monto a transferir</Lbl>
+              <InputDecimalContable 
+                 value={trMonto} 
+                 onChange={val => setTrMonto(val)} 
+                 style={{ border: "none", borderBottom: `2px solid ${B.celeste}`, borderRadius: 0, padding: "8px 0", background: "transparent" }}
+                 inputStyle={{ textAlign: "left", fontSize: 20, fontWeight: "bold" }}
+              />
+            </div>
+            <Btn onClick={ejecutarTransferencia} disabled={!trOrigen || !trDestino || !trMonto || trMonto <= 0}>Confirmar Movimiento</Btn>
+          </div>
+        </Card>
+      )}
+
+      <Card glow style={{ padding: 14 }}>
+        <Lbl style={{ color: B.celeste, marginBottom: 12 }}>FONDOS DE ENTRADA INICIALES POR CUENTA</Lbl>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {CUENTAS.map(c => {
+            const subcats = todasCats.filter(cat => cat.cuenta === c.id);
+            const estaAbierto = cuentaExpandida === c.id;
+            const totalInicialCuenta = subcats.reduce((sum, sub) => sum + (parseFloat(balancesIniciales[sub.id]) || 0), 0);
+            return (
+              <div key={c.id} style={{ background: "#091424", border: `1px solid ${estaAbierto ? c.color + "77" : "#152233"}`, borderRadius: 14, overflow: "hidden" }}>
+                <div onClick={() => setCuentaExpandida(estaAbierto ? null : c.id)} style={{ padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", background: estaAbierto ? "#112236" : "transparent" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <IconoCustom source={SVG_CUENTAS[c.id]} size={16} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: B.texto }}>{c.nombre}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{fmtDisplay(totalInicialCuenta)}</span>
+                    <span style={{ fontSize: 12, color: B.textoSub }}>{estaAbierto ? "▲" : "▼"}</span>
+                  </div>
+                </div>
+                {estaAbierto && (
+                  <div style={{ padding: "12px 14px", background: "#0C1828", borderTop: "1px solid #152233", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {subcats.length === 0 ? (
+                      <div style={{ fontSize: 12, color: B.textoSub, textAlign: "center" }}>No hay conceptos asignados.</div>
                     ) : (
-                        <Card style={{ border: `1px solid ${B.azulMedio}` }}>
-                            <Lbl style={{ color: B.celeste }}>ORGANIZADOR COMPLETO DEL MES</Lbl>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 6 }}>
-                                    <Sel value={nuevo.semana} onChange={e => setNuevo({ ...nuevo, semana: parseInt(e.target.value) })}>
-                                        <option value={1}>Sem 1</option><option value={2}>Sem 2</option>
-                                        <option value={3}>Sem 3</option><option value={4}>Sem 4</option>
-                                    </Sel>
-                                    <Inp placeholder="Gasto u Obligación" value={nuevo.nombre} onChange={e => setNuevo({ ...nuevo, nombre: e.target.value })} />
-                                </div>
-                                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 6 }}>
-                                    <Sel value={nuevo.cuenta} onChange={e => setNuevo({ ...nuevo, cuenta: e.target.value })}>
-                                        {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                                    </Sel>
-                                    <Inp type="text" inputMode="decimal" placeholder="0.00" value={nuevo.monto} onChange={e => setNuevo({ ...nuevo, monto: e.target.value.replace(/[^0-9.,]/g, '') })} />
-                                </div>
-                                <Btn onClick={agregarItem}>+ Insertar Obligación</Btn>
-                            </div>
-                            <Lbl style={{ marginTop: 14 }}>RUBROS ASIGNADOS AL MOMENTO</Lbl>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 200, overflowY: "auto" }}>
-                                {pagosDelMes.map(p => (
-                                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#091424", padding: "8px 10px", borderRadius: 10 }}>
-                                        <span style={{ fontSize: 10, color: B.textoSub, minWidth: 26 }}>S{p.semana}</span>
-                                        <span style={{ flex: 1, fontSize: 13, color: B.texto, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: B.celeste }}>{fmt(p.monto).split(".")[0]}</span>
-                                        <button onClick={() => eliminarItem(p.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 18, cursor: "pointer" }}>x</button>
-                                    </div>
-                                ))}
-                            </div>
-                        </Card>
-                    )}
-                </div>
-            );
-        }
-
-        function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) {
-            const [editId, setEditId] = useState(null);
-            const [editFecha, setEditFecha] = useState("");
-            const [editIngreso, setEditIngreso] = useState("");
-            const [editItems, setEditItems] = useState([]);
-            
-            const registrosDelMes = registros.filter(r => r.fecha.startsWith(mesFiltro));
-            
-            const comenzarEdicion = (reg) => { setEditId(reg.id); setEditFecha(reg.fecha); setEditIngreso(reg.ingreso); setEditItems([...reg.items]); };
-            
-            const guardarEdicion = () => {
-                const totalBruto = parseFloat(editIngreso) || 0;
-                const totalDist = editItems.reduce((acc, cur) => acc + (parseFloat(cur.monto) || 0), 0);
-                if (Math.abs(totalBruto - totalDist) > 0.02) { alert('Error: La distribución no está cuadrada.'); return; }
-                
-                setRegistros(registros.map(r => r.id === editId ? { id: editId, fecha: editFecha, ingreso: totalBruto, items: editItems.filter(i => i.cat && i.monto).map(i => ({ ...i, monto: parseFloat(i.monto) || 0 })) } : r));
-                setEditId(null);
-            };
-            
-            const eliminarRegistro = (id) => { if (confirm("¿Estás seguro de eliminar esta distribución?")) setRegistros(registros.filter(r => r.id !== id)); };
-            const updItem = (index, field, value) => { const copy = [...editItems]; copy[index][field] = value; setEditItems(copy); };
-            
-            return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-                    <Lbl>HISTORIAL DE DISTRIBUCIONES DEL PERIODO</Lbl>
-                    {editId && (
-                        <Card style={{ border: `1px solid ${B.celeste}` }}>
-                            <Lbl style={{ color: B.celeste }}>EDITAR REGISTRO CONTABLE</Lbl>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
-                                <Inp type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} />
-                                <Inp type="text" inputMode="decimal" value={editIngreso} onChange={e => setEditIngreso(e.target.value.replace(/[^0-9.,]/g, ''))} />
-                                {editItems.map((it, idx) => (
-                                    <div key={idx} style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                                        <Sel value={it.cat} onChange={e => updItem(idx, "cat", e.target.value)} style={{ flex: 2 }}>
-                                            {CUENTAS.map(cu => (
-                                                <optgroup key={cu.id} label={cu.nombre}>
-                                                    {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                                                        <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </Sel>
-                                        <Inp type="text" inputMode="decimal" value={it.monto} onChange={e => updItem(idx, "monto", e.target.value.replace(/[^0-9.,]/g, ''))} style={{ flex: 1.5 }} />
-                                    </div>
-                                ))}
-                                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                    <Btn onClick={guardarEdicion}>Guardar Cambios</Btn>
-                                    <Btn onClick={() => setEditId(null)} v="ghost">Cancelar</Btn>
-                                </div>
-                            </div>
-                        </Card>
-                    )}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {registrosDelMes.length === 0 && <div style={{ color: B.textoSub, textAlign: "center", padding: 20 }}>No hay distribuciones.</div>}
-                        {[...registrosDelMes].reverse().map(r => (
-                            <Card key={r.id} style={{ padding: 14 }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                                    <div>
-                                        <span style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{r.fecha.split("-").reverse().join("/")}</span>
-                                        <div style={{ fontSize: 11, color: B.textoSub }}>Monto Bruto: <span style={{ color: B.celeste }}>{fmtDisplay(r.ingreso)}</span></div>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 8 }}>
-                                        <button onClick={() => comenzarEdicion(r)} style={{ background: "transparent", border: "none", color: B.celeste, cursor: "pointer" }}>✎</button>
-                                        <button onClick={() => eliminarRegistro(r.id)} style={{ background: "transparent", border: "none", color: "#EF4444", cursor: "pointer" }}>✕</button>
-                                    </div>
-                                </div>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 4, background: "#06111F", padding: 8, borderRadius: 10 }}>
-                                    {r.items.map((it, idx) => (
-                                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                                            <span style={{ color: B.texto }}>• {it.cat}</span>
-                                            <span style={{ color: B.textoSub, fontWeight: 600 }}>{fmtDisplay(it.monto)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
-
-        function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, setTodasCats, registros, pagos, transferencias, setTransferencias, mesFiltro }) {
-            const [nuevaSubcat, setNuevaSubcat] = useState("");
-            const [cuentaSeleccionada, setCuentaSeleccionada] = useState("general");
-            const [cuentaExpandida, setCuentaExpandida] = useState(null);
-            const [editandoNombreId, setEditandoNombreId] = useState(null);
-            const [nuevoNombre, setNuevoNombre] = useState("");
-            const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
-            
-            // Estados del Modal/Card de Transferencias Internas
-            const [mostrarTransf, setMostrarTransf] = useState(false);
-            const [trOrigen, setTrOrigen] = useState("");
-            const [trDestino, setTrDestino] = useState("");
-            const [trMonto, setTrMonto] = useState("");
-
-            const toggleSeccion = (cuentaId) => setSeccionesAbiertas(prev => ({ ...prev, [cuentaId]: !prev[cuentaId] }));
-            
-            const agregarSubcategoria = () => {
-                if (!nuevaSubcat.trim()) return;
-                const cuentaObj = CUENTAS.find(c => c.id === cuentaSeleccionada);
-                setTodasCats([...todasCats, { id: "sub_" + Date.now(), nombre: nuevaSubcat.trim(), cuenta: cuentaSeleccionada, color: cuentaObj ? cuentaObj.color : "#4EA5E0" }]);
-                setNuevaSubcat("");
-                setSeccionesAbiertas(prev => ({ ...prev, [cuentaSeleccionada]: true }));
-            };
-            const eliminarSubcategoria = (id) => setTodasCats(todasCats.filter(c => c.id !== id));
-            const iniciarEdicionNombre = (cat) => { setEditandoNombreId(cat.id); setNuevoNombre(cat.nombre); };
-            const guardarNombre = () => {
-                if (!nuevoNombre.trim()) return;
-                setTodasCats(todasCats.map(c => c.id === editandoNombreId ? { ...c, nombre: nuevoNombre.trim() } : c));
-                setEditandoNombreId(null);
-            };
-
-            // Cálculo en vivo del saldo de la subcategoría para el select
-            const getSaldoActual = (nombreCat) => {
-                const cat = todasCats.find(c => c.nombre === nombreCat);
-                if (!cat) return 0;
-                
-                const inicial = parseFloat(balancesIniciales[cat.id] || 0);
-                const distMes = registros.filter(r => r.fecha.startsWith(mesFiltro)).reduce((sum, r) => sum + (r.items || []).filter(i => i.cat === nombreCat).reduce((s, i) => s + i.monto, 0), 0);
-                
-                const util = pagos.filter(p => p.ok && p.mes === mesFiltro).reduce((sum, p) => {
-                    const np = p.nombre.trim().toLowerCase();
-                    let cDest = null;
-                    if (p.cuenta === "nomina" && np.startsWith("nómina -")) cDest = p.semana === 2 ? "1ra Quincena" : p.semana === 4 ? "2da Quincena" : null;
-                    if (cDest && cDest.toLowerCase() === nombreCat.trim().toLowerCase()) return sum + p.monto;
-                    if (!cDest && np === nombreCat.trim().toLowerCase()) return sum + p.monto;
-                    return sum;
-                }, 0);
-                
-                const tIn = transferencias.filter(t => t.mes === mesFiltro && t.destino === nombreCat).reduce((s, t) => s + (parseFloat(t.monto) || 0), 0);
-                const tOut = transferencias.filter(t => t.mes === mesFiltro && t.origen === nombreCat).reduce((s, t) => s + (parseFloat(t.monto) || 0), 0);
-                
-                return inicial + distMes + tIn - tOut - util;
-            };
-
-            const ejecutarTransferencia = () => {
-                const montoNum = parseFloat(trMonto);
-                if (!trOrigen || !trDestino || isNaN(montoNum) || montoNum <= 0) return;
-                if (trOrigen === trDestino) { alert("La categoría de origen y destino deben ser distintas."); return; }
-                
-                const catOr = todasCats.find(c => c.nombre === trOrigen);
-                const catDe = todasCats.find(c => c.nombre === trDestino);
-                
-                const nuevaTransf = {
-                    id: Date.now().toString(),
-                    mes: mesFiltro,
-                    origen: trOrigen,
-                    origenCuenta: catOr.cuenta,
-                    destino: trDestino,
-                    destinoCuenta: catDe.cuenta,
-                    monto: montoNum
-                };
-                
-                setTransferencias([...transferencias, nuevaTransf]);
-                setTrOrigen(""); setTrDestino(""); setTrMonto("");
-                setMostrarTransf(false);
-            };
-
-            return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
-                    
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div>
-                            <div style={{ fontSize: 20, fontWeight: 700, color: B.texto }}>Panel de Cuentas</div>
-                            <div style={{ fontSize: 12, color: B.textoSub }}>Configura y reasigna liquidez</div>
-                        </div>
-                        <button onClick={() => setMostrarTransf(!mostrarTransf)} style={{ background: "transparent", border: `1px solid ${B.celeste}`, color: B.celeste, padding: "6px 12px", borderRadius: 10, fontSize: 13, cursor: "pointer", fontWeight: 600 }}>
-                            {mostrarTransf ? "✕ Cerrar Panel" : "⇄ Mover Fondos"}
-                        </button>
-                    </div>
-
-                    {mostrarTransf && (
-                        <Card style={{ border: `1px solid ${B.celeste}` }}>
-                            <Lbl style={{ color: B.celeste }}>TRANSFERENCIA INTERNA DE FONDOS</Lbl>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                <Sel value={trOrigen} onChange={e => setTrOrigen(e.target.value)}>
-                                    <option value="">De (Sale el dinero)...</option>
-                                    {todasCats.map(c => <option key={`o-${c.id}`} value={c.nombre}>{c.nombre} (Disp: {fmt(getSaldoActual(c.nombre))})</option>)}
-                                </Sel>
-                                
-                                <Sel value={trDestino} onChange={e => setTrDestino(e.target.value)}>
-                                    <option value="">Para (Entra el dinero)...</option>
-                                    {todasCats.map(c => <option key={`d-${c.id}`} value={c.nombre}>{c.nombre}</option>)}
-                                </Sel>
-                                
-                                <Inp type="text" inputMode="decimal" placeholder="Monto a transferir" value={trMonto} onChange={e => setTrMonto(e.target.value.replace(/[^0-9.,]/g, ''))} style={{ fontSize: 16, fontWeight: "bold" }} />
-                                
-                                <Btn onClick={ejecutarTransferencia} disabled={!trOrigen || !trDestino || !trMonto}>Confirmar Movimiento</Btn>
-                            </div>
-                        </Card>
-                    )}
-
-                    <Card glow style={{ padding: 14 }}>
-                        <Lbl style={{ color: B.celeste, marginBottom: 12 }}>FONDOS DE ENTRADA INICIALES POR CUENTA</Lbl>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {CUENTAS.map(c => {
-                                const subcats = todasCats.filter(cat => cat.cuenta === c.id);
-                                const estaAbierto = cuentaExpandida === c.id;
-                                const totalInicialCuenta = subcats.reduce((sum, sub) => sum + (parseFloat(balancesIniciales[sub.id]) || 0), 0);
-                                return (
-                                    <div key={c.id} style={{ background: "#091424", border: `1px solid ${estaAbierto ? c.color + "77" : "#152233"}`, borderRadius: 14, overflow: "hidden" }}>
-                                        <div onClick={() => setCuentaExpandida(estaAbierto ? null : c.id)} style={{ padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", background: estaAbierto ? "#112236" : "transparent" }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                                <IconoCustom source={SVG_CUENTAS[c.id]} size={16} />
-                                                <span style={{ fontSize: 13, fontWeight: 700, color: B.texto }}>{c.nombre}</span>
-                                            </div>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{fmtDisplay(totalInicialCuenta)}</span>
-                                                <span style={{ fontSize: 12, color: B.textoSub }}>{estaAbierto ? "▲" : "▼"}</span>
-                                            </div>
-                                        </div>
-                                        {estaAbierto && (
-                                            <div style={{ padding: "12px 14px", background: "#0C1828", borderTop: "1px solid #152233", display: "flex", flexDirection: "column", gap: 10 }}>
-                                                {subcats.length === 0 ? (
-                                                    <div style={{ fontSize: 12, color: B.textoSub, textAlign: "center" }}>No hay conceptos asignados.</div>
-                                                ) : (
-                                                    subcats.map(sub => (
-                                                        <div key={sub.id} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                                                            <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", alignItems: "center", gap: 8 }}>
-                                                                {editandoNombreId === sub.id ? (
-                                                                    <div style={{ display: "flex", gap: 4 }}>
-                                                                        <Inp value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} style={{ padding: "5px 8px", fontSize: 12, flex: 1 }} />
-                                                                        <button onClick={guardarNombre} style={{ background: "#22C55E22", border: "1px solid #22C55E", color: "#22C55E", borderRadius: 8, padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>✓</button>
-                                                                        <button onClick={() => setEditandoNombreId(null)} style={{ background: "transparent", border: `1px solid ${B.textoSub}`, color: B.textoSub, borderRadius: 8, padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>✕</button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                                        <span style={{ fontSize: 13, color: B.texto, flex: 1 }}>{sub.nombre}</span>
-                                                                        <button onClick={() => iniciarEdicionNombre(sub)} style={{ background: "transparent", border: "none", color: B.textoSub, cursor: "pointer", padding: "2px 4px", opacity: 0.7 }}>
-                                                                            <IconoCustom source={SVG_EDITAR} size={12} />
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                                <InputDecimalContable value={balancesIniciales[sub.id] || 0} onChange={val => setBalancesIniciales({ ...balancesIniciales, [sub.id]: val })} />
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
-                    <Card>
-                        <Lbl>CREAR NUEVA SUBCATEGORÍA</Lbl>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 6 }}>
-                                <Inp placeholder="Ej: Gasoil Extra" value={nuevaSubcat} onChange={e => setNuevaSubcat(e.target.value)} />
-                                <Sel value={cuentaSeleccionada} onChange={e => setCuentaSeleccionada(e.target.value)}>
-                                    {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                                </Sel>
-                            </div>
-                            <Btn onClick={agregarSubcategoria}>+ Agregar Subcategoría</Btn>
-                        </div>
-                    </Card>
-                    <Card style={{ background: "#09121F" }}>
-                        <Lbl style={{ color: B.textoSub }}>SUBCATEGORÍAS CONFIGURADAS</Lbl>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
-                            {CUENTAS.map(c => {
-                                const subcatsDeEstaCuenta = todasCats.filter(cat => cat.cuenta === c.id);
-                                if (subcatsDeEstaCuenta.length === 0) return null;
-                                const abierta = seccionesAbiertas[c.id];
-                                return (
-                                    <div key={c.id} style={{ background: "#0C1828", border: `1px solid ${abierta ? c.color + "55" : "#1A2E44"}`, borderRadius: 12, overflow: "hidden" }}>
-                                        <div onClick={() => toggleSeccion(c.id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", cursor: "pointer", background: abierta ? "#0F1E30" : "transparent" }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                <IconoCustom source={SVG_CUENTAS[c.id]} size={13} />
-                                                <span style={{ fontSize: 12, fontWeight: 700, color: c.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{c.nombre}</span>
-                                                <span style={{ fontSize: 11, color: B.textoSub, background: "#152233", borderRadius: 6, padding: "1px 6px" }}>{subcatsDeEstaCuenta.length}</span>
-                                            </div>
-                                            <span style={{ fontSize: 11, color: B.textoSub, transition: "transform 0.2s" }}>{abierta ? "▲" : "▼"}</span>
-                                        </div>
-                                        {abierta && (
-                                            <div style={{ padding: "10px 14px 14px", display: "flex", flexWrap: "wrap", gap: 6 }}>
-                                                {subcatsDeEstaCuenta.map(sub => (
-                                                    <div key={sub.id} style={{ display: "flex", alignItems: "center", gap: 4, background: "#0C1828", border: "1px solid #1A2E44", borderRadius: 10, padding: "6px 10px", fontSize: 12, color: B.texto }}>
-                                                        <span>{sub.nombre}</span>
-                                                        <button onClick={() => iniciarEdicionNombre(sub)} style={{ background: "transparent", border: "none", color: B.textoSub, cursor: "pointer", padding: "0 2px", opacity: 0.8 }}>✎</button>
-                                                        <button onClick={() => { if (window.confirm(`¿Eliminar "${sub.nombre}"?`)) eliminarSubcategoria(sub.id); }} style={{ background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", fontWeight: "bold", fontSize: 11, padding: "0 2px" }}>✕</button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
-                </div>
-            );
-        }
-
-        function App() {
-            const [tab, setTab] = useStore("ar_tab_v4", "inicio");
-            const [registros, setRegistros] = useStore("ar_registros_v4", []);
-            const [pagos, setPagos] = useStore("ar_pagos_v4", INITIAL_PAGOS);
-            const [todasCats, setTodasCats] = useStore("ar_cats_v4", INITIAL_CATS);
-            const [balancesIniciales, setBalancesIniciales] = useStore("ar_balances_v4", {});
-            const [mesFiltro, setMesFiltro] = useStore("ar_mes_filtro_v4", obtenerMesActual());
-            
-            // Nuevo estado global para las Transferencias Internas
-            const [transferencias, setTransferencias] = useStore("ar_transferencias_v4", []);
-
-            const svgInicio = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
-            const svgDist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
-            const svgPagos = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
-            const svgHist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
-            const svgCuentas = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
-
-            useEffect(() => {
-                if (pagos.length > 0 && !pagos[0].mes) {
-                    const mesAct = obtenerMesActual();
-                    setPagos(pagos.map(p => ({ ...p, mes: p.mes || mesAct })));
-                } else {
-                    const tienePagosParaMes = pagos.some(p => p.mes === mesFiltro);
-                    if (!tienePagosParaMes) {
-                        const nuevosPagosMes = INITIAL_PAGOS.map(p => ({ ...p, id: p.id + "_" + mesFiltro, mes: mesFiltro, ok: false }));
-                        setPagos(prev => [...prev, ...nuevosPagosMes]);
-                    }
-                }
-            }, [mesFiltro, pagos.length]);
-
-            return (
-                <div style={{ height: "100%", display: "flex", flexDirection: "column", backgroundColor: B.fondo, color: B.texto, boxSizing: "border-box", overflow: "hidden" }}>
-                    <div style={{ flexShrink: 0, background: "linear-gradient(to bottom, #0A1422, #07101C)", borderBottom: `1px solid ${B.fondoBorde}`, padding: "40px 20px 16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 100 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
-                                <rect width="100" height="100" rx="22" fill="#0C1828"/>
-                                <path d="M50 15 C50 15 26 48 26 65 C26 79 36.8 90 50 90 C63.2 90 74 79 74 65 C74 48 50 15 50 15Z" fill="#1A65A4"/>
-                                <path d="M50 28 C50 28 32 52 32 65 C32 75 40 82 50 82 C60 82 68 75 68 65 C68 52 50 28 50 28Z" fill="#70CCE1" opacity="0.85"/>
-                                <path d="M38 58 C36 64 39 72 46 76" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" opacity="0.9"/>
-                            </svg>
-                            <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.05em", color: "#fff" }}>AGUA RUTH</span>
-                        </div>
-                        <div style={{ width: 135 }}>
-                            <Sel value={mesFiltro} onChange={e => setMesFiltro(e.target.value)} style={{ padding: "6px 10px", fontSize: 12, background: "#111E2E", borderRadius: 8, height: 32 }}>
-                                {MESES_2026.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
-                            </Sel>
-                        </div>
-                    </div>
-                    
-                    <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", width: "100%", boxSizing: "border-box" }}>
-                        {tab === "inicio" && <Dashboard registros={registros} pagos={pagos} transferencias={transferencias} todasCats={todasCats} balancesIniciales={balancesIniciales} mesFiltro={mesFiltro} />}
-                        {tab === "distribuir" && <Distribucion onGuardar={r => setRegistros([...registros, r])} todasCats={todasCats} />}
-                        {tab === "pagos" && <Pagos pagos={pagos} setPagos={setPagos} mesFiltro={mesFiltro} />}
-                        {tab === "historial" && <Historial registros={registros} setRegistros={setRegistros} todasCats={todasCats} mesFiltro={mesFiltro} />}
-                        {tab === "cuentas" && <CuentasConfig balancesIniciales={balancesIniciales} setBalancesIniciales={setBalancesIniciales} todasCats={todasCats} setTodasCats={setTodasCats} registros={registros} pagos={pagos} transferencias={transferencias} setTransferencias={setTransferencias} mesFiltro={mesFiltro} />}
-                        <div style={{ height: 80, flexShrink: 0 }} />
-                    </div>
-                    
-                    <div style={{ flexShrink: 0, backgroundColor: "#091424F2", backdropFilter: "blur(20px)", borderTop: `1px solid ${B.fondoBorde}`, display: "flex", justifyContent: "space-around", padding: "10px 10px calc(10px + env(safe-area-inset-bottom)) 10px", zIndex: 1000 }}>
-                        {[
-                            { id: "inicio", label: "Inicio", svg: svgInicio },
-                            { id: "distribuir", label: "Distribuir", svg: svgDist },
-                            { id: "pagos", label: "Semanal", svg: svgPagos },
-                            { id: "historial", label: "Historial", svg: svgHist },
-                            { id: "cuentas", label: "Cuentas", svg: svgCuentas }
-                        ].map(t => {
-                            const act = tab === t.id;
-                            return (
-                                <button key={t.id} onClick={() => setTab(t.id)} style={{ background: "transparent", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, color: act ? B.celeste : B.textoSub, cursor: "pointer", padding: "6px 0", flex: 1, outline: "none" }}>
-                                    <IconoCustom source={t.svg} size={20} />
-                                    <span style={{ fontSize: 10, fontWeight: act ? 700 : 500, letterSpacing: "0.02em" }}>{t.label}</span>
+                      subcats.map(sub => (
+                        <div key={sub.id} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", alignItems: "center", gap: 8 }}>
+                            {editandoNombreId === sub.id ? (
+                              <div style={{ display: "flex", gap: 4 }}>
+                                <Inp value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} style={{ padding: "5px 8px", fontSize: 12, flex: 1 }} />
+                                <button onClick={guardarNombre} style={{ background: "#22C55E22", border: "1px solid #22C55E", color: "#22C55E", borderRadius: 8, padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>✓</button>
+                                <button onClick={() => setEditandoNombreId(null)} style={{ background: "transparent", border: `1px solid ${B.textoSub}`, color: B.textoSub, borderRadius: 8, padding: "4px 8px", fontSize: 11, cursor: "pointer" }}>✕</button>
+                              </div>
+                            ) : (
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ fontSize: 13, color: B.texto, flex: 1 }}>{sub.nombre}</span>
+                                <button onClick={() => iniciarEdicionNombre(sub)} style={{ background: "transparent", border: "none", color: B.textoSub, cursor: "pointer", padding: "8px 4px", margin: "-8px 0" }}>
+                                  <IconoCustom source={SVG_EDITAR} size={14} />
                                 </button>
-                            );
-                        })}
-                    </div>
-                </div>
+                              </div>
+                            )}
+                            <InputDecimalContable value={balancesIniciales[sub.id] || 0} onChange={val => setBalancesIniciales({ ...balancesIniciales, [sub.id]: val })} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             );
-        }
+          })}
+        </div>
+      </Card>
 
-        const root = ReactDOM.createRoot(document.getElementById("root"));
-        root.render(<App />);
-    </script>
+      <Card>
+        <Lbl>CREAR NUEVA SUBCATEGORÍA</Lbl>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 6 }}>
+            <Inp placeholder="Ej: Gasoil Extra" value={nuevaSubcat} onChange={e => setNuevaSubcat(e.target.value)} />
+            <Sel value={cuentaSeleccionada} onChange={e => setCuentaSeleccionada(e.target.value)}>
+              {CUENTAS.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </Sel>
+          </div>
+          <Btn onClick={agregarSubcategoria}>+ Agregar Subcategoría</Btn>
+        </div>
+      </Card>
+
+      <Card style={{ background: "#09121F" }}>
+        <Lbl style={{ color: B.textoSub }}>SUBCATEGORÍAS CONFIGURADAS</Lbl>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+          {CUENTAS.map(c => {
+            const subcatsDeEstaCuenta = todasCats.filter(cat => cat.cuenta === c.id);
+            if (subcatsDeEstaCuenta.length === 0) return null;
+            const abierta = seccionesAbiertas[c.id];
+            return (
+              <div key={c.id} style={{ background: "#0C1828", border: `1px solid ${abierta ? c.color + "55" : "#1A2E44"}`, borderRadius: 12, overflow: "hidden" }}>
+                <div onClick={() => toggleSeccion(c.id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", cursor: "pointer", background: abierta ? "#0F1E30" : "transparent" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <IconoCustom source={SVG_CUENTAS[c.id]} size={13} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: c.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{c.nombre}</span>
+                    <span style={{ fontSize: 11, color: B.textoSub, background: "#152233", borderRadius: 6, padding: "1px 6px" }}>{subcatsDeEstaCuenta.length}</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: B.textoSub, transition: "transform 0.2s" }}>{abierta ? "▲" : "▼"}</span>
+                </div>
+                {abierta && (
+                  <div style={{ padding: "10px 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    {subcatsDeEstaCuenta.map((sub, idx) => (
+                      <div key={sub.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#09121F", border: "1px solid #1A2E44", borderRadius: 10, padding: "8px 12px", fontSize: 13, color: B.texto }}>
+                        <span style={{ flex: 1 }}>{sub.nombre}</span>
+                        
+                        {/* Controles de orden */}
+                        <div style={{ display: "flex", gap: 2, marginRight: 6 }}>
+                           <button onClick={() => moverCat(sub.id, -1)} disabled={idx === 0} style={{ background: "transparent", border: "none", color: idx === 0 ? "#1A2E44" : B.textoSub, cursor: idx === 0 ? "default" : "pointer", padding: "4px", fontSize: 14 }}>↑</button>
+                           <button onClick={() => moverCat(sub.id, 1)} disabled={idx === subcatsDeEstaCuenta.length - 1} style={{ background: "transparent", border: "none", color: idx === subcatsDeEstaCuenta.length - 1 ? "#1A2E44" : B.textoSub, cursor: idx === subcatsDeEstaCuenta.length - 1 ? "default" : "pointer", padding: "4px", fontSize: 14 }}>↓</button>
+                        </div>
+
+                        <button onClick={() => iniciarEdicionNombre(sub)} style={{ background: "transparent", border: "none", color: B.textoSub, cursor: "pointer", padding: "6px 8px", opacity: 0.8 }}>✎</button>
+                        <button onClick={() => { if (window.confirm(`¿Eliminar "${sub.nombre}"?`)) eliminarSubcategoria(sub.id); }} style={{ background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", fontWeight: "bold", fontSize: 14, padding: "6px 8px" }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function App() {
+  const [tab, setTab] = useStore("ar_tab_v5", "inicio");
+  const [registros, setRegistros] = useStore("ar_registros_v5", []);
+  const [pagos, setPagos] = useStore("ar_pagos_v5", INITIAL_PAGOS);
+  const [todasCats, setTodasCats] = useStore("ar_cats_v5", INITIAL_CATS);
+  const [balancesIniciales, setBalancesIniciales] = useStore("ar_balances_v5", {});
+  const [mesFiltro, setMesFiltro] = useStore("ar_mes_filtro_v5", obtenerMesActual());
+  const [transferencias, setTransferencias] = useStore("ar_transferencias_v5", []);
+
+  const svgInicio = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
+  const svgDist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
+  const svgPagos = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
+  const svgHist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
+  const svgCuentas = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  useEffect(() => {
+    if (pagos.length > 0 && !pagos[0].mes) {
+      const mesAct = obtenerMesActual();
+      setPagos(pagos.map(p => ({ ...p, mes: p.mes || mesAct })));
+    } else {
+      const tienePagosParaMes = pagos.some(p => p.mes === mesFiltro);
+      if (!tienePagosParaMes) {
+        const nuevosPagosMes = INITIAL_PAGOS.map(p => ({ ...p, id: p.id + "_" + mesFiltro, mes: mesFiltro, ok: false }));
+        setPagos(prev => [...prev, ...nuevosPagosMes]);
+      }
+    }
+  }, [mesFiltro, pagos.length]);
+
+  // Se ejecuta la lógica maestra de cálculo para todas las vistas
+  const saldosGlobales = useMemo(() => calcularSaldos(mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias), [mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias]);
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", backgroundColor: B.fondo, color: B.texto, boxSizing: "border-box", overflow: "hidden" }}>
+      <div style={{ flexShrink: 0, background: "linear-gradient(to bottom, #0A1422, #07101C)", borderBottom: `1px solid ${B.fondoBorde}`, padding: "40px 20px 16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <rect width="100" height="100" rx="22" fill="#0C1828"/>
+            <path d="M50 15 C50 15 26 48 26 65 C26 79 36.8 90 50 90 C63.2 90 74 79 74 65 C74 48 50 15 50 15Z" fill="#1A65A4"/>
+            <path d="M50 28 C50 28 32 52 32 65 C32 75 40 82 50 82 C60 82 68 75 68 65 C68 52 50 28 50 28Z" fill="#70CCE1" opacity="0.85"/>
+            <path d="M38 58 C36 64 39 72 46 76" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" opacity="0.9"/>
+          </svg>
+          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.05em", color: "#fff" }}>AGUA RUTH</span>
+        </div>
+        <div style={{ width: 135 }}>
+          <Sel value={mesFiltro} onChange={e => setMesFiltro(e.target.value)} style={{ padding: "6px 10px", fontSize: 12, background: "#111E2E", borderRadius: 8, height: 32 }}>
+            {MESES_2026.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
+          </Sel>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", width: "100%", boxSizing: "border-box" }}>
+        {tab === "inicio" && <Dashboard registros={registros} pagos={pagos} todasCats={todasCats} mesFiltro={mesFiltro} saldosGlobales={saldosGlobales} />}
+        {tab === "distribuir" && <Distribucion onGuardar={r => setRegistros([...registros, r])} todasCats={todasCats} />}
+        {tab === "pagos" && <Pagos pagos={pagos} setPagos={setPagos} mesFiltro={mesFiltro} />}
+        {tab === "historial" && <Historial registros={registros} setRegistros={setRegistros} todasCats={todasCats} mesFiltro={mesFiltro} />}
+        {tab === "cuentas" && <CuentasConfig balancesIniciales={balancesIniciales} setBalancesIniciales={setBalancesIniciales} todasCats={todasCats} setTodasCats={setTodasCats} transferencias={transferencias} setTransferencias={setTransferencias} mesFiltro={mesFiltro} saldosGlobales={saldosGlobales} />}
+        <div style={{ height: 80, flexShrink: 0 }} />
+      </div>
+
+      <div style={{ flexShrink: 0, backgroundColor: "#091424F2", backdropFilter: "blur(20px)", borderTop: `1px solid ${B.fondoBorde}`, display: "flex", justifyContent: "space-around", padding: "10px 10px calc(10px + env(safe-area-inset-bottom)) 10px", zIndex: 1000 }}>
+        {[
+          { id: "inicio", label: "Inicio", svg: svgInicio },
+          { id: "distribuir", label: "Distribuir", svg: svgDist },
+          { id: "pagos", label: "Semanal", svg: svgPagos },
+          { id: "historial", label: "Historial", svg: svgHist },
+          { id: "cuentas", label: "Cuentas", svg: svgCuentas }
+        ].map(t => {
+          const act = tab === t.id;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ background: "transparent", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, color: act ? B.celeste : B.textoSub, cursor: "pointer", padding: "6px 0", flex: 1, outline: "none" }}>
+              <IconoCustom source={t.svg} size={20} />
+              <span style={{ fontSize: 10, fontWeight: act ? 700 : 500, letterSpacing: "0.02em" }}>{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
 </body>
 </html>
