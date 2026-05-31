@@ -182,11 +182,11 @@ const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pago
     }
 
     if (matchedCat) {
-      pagoAcat[p.id] = matchedCat.nombre;
+      pagoAcat[p.id] = matchedCat.id; // Asignación ultra-segura por ID
     } else {
       const holdCat = todasCats.find(c => c.cuenta === (p.cuenta || "general") && (c.nombre.toLowerCase().includes("hold") || c.nombre.toLowerCase().includes("fondo")));
       if (holdCat) {
-        pagoAcat[p.id] = holdCat.nombre;
+        pagoAcat[p.id] = holdCat.id; // Asignación por ID
       } else {
         pagoAcat[p.id] = `__sin_cat_${p.cuenta || "general"}`;
       }
@@ -204,10 +204,11 @@ const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pago
     const trAnt = transferencias.filter(t => t.mes < mesFiltro);
     const trMes = transferencias.filter(t => t.mes === mesFiltro);
 
-    const sumReg = (arr) => arr.reduce((sum, r) => sum + (r.items || []).filter(i => i.cat === cat.nombre).reduce((s, i) => s + parseFloat(i.monto||0), 0), 0);
-    const sumTrIn = (arr) => arr.filter(t => t.destino === cat.nombre).reduce((s, t) => s + parseFloat(t.monto||0), 0);
-    const sumTrOut = (arr) => arr.filter(t => t.origen === cat.nombre).reduce((s, t) => s + parseFloat(t.monto||0), 0);
-    const sumPag = (arr) => arr.filter(p => pagoAcat[p.id] === cat.nombre).reduce((sum, p) => sum + parseFloat(p.monto||0), 0);
+    // Sumas robustas: aceptan tanto el nombre viejo como el ID nuevo (para backwards compatibility)
+    const sumReg = (arr) => arr.reduce((sum, r) => sum + (r.items || []).filter(i => i.cat === cat.id || i.cat === cat.nombre).reduce((s, i) => s + parseFloat(i.monto||0), 0), 0);
+    const sumTrIn = (arr) => arr.filter(t => t.destino === cat.id || t.destino === cat.nombre).reduce((s, t) => s + parseFloat(t.monto||0), 0);
+    const sumTrOut = (arr) => arr.filter(t => t.origen === cat.id || t.origen === cat.nombre).reduce((s, t) => s + parseFloat(t.monto||0), 0);
+    const sumPag = (arr) => arr.filter(p => pagoAcat[p.id] === cat.id).reduce((sum, p) => sum + parseFloat(p.monto||0), 0);
 
     const arrastre = inicial + sumReg(regAnt) + sumTrIn(trAnt) - sumTrOut(trAnt) - sumPag(pagAnt);
     const ingresosMes = sumReg(regMes) + sumTrIn(trMes) - sumTrOut(trMes);
@@ -215,7 +216,8 @@ const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pago
     const utilMes = sumPag(pagMes);
     const restante = distribucion - utilMes;
 
-    statsCat[cat.nombre] = { arrastre, distribucion, utilMes, restante, esHold };
+    // AHORA LAS STATS SE GUARDAN USANDO cat.id ESTRICTAMENTE (Fix Bug #1)
+    statsCat[cat.id] = { arrastre, distribucion, utilMes, restante, esHold };
     if(statsCuentas[cat.cuenta]) statsCuentas[cat.cuenta].restante += restante;
   });
 
@@ -293,7 +295,8 @@ function TablaDesgloseCuenta({ cuentaId, todasCats, saldosGlobales }) {
   let totalDist = 0, totalUtil = 0, totalRest = 0;
   
   const filas = subcats.map(cat => {
-    const st = saldosGlobales.statsCat[cat.nombre] || { distribucion: 0, utilMes: 0, restante: 0, esHold: false };
+    // Usamos el ID estricto para recuperar saldos correctos (Fix Bug #1)
+    const st = saldosGlobales.statsCat[cat.id] || { distribucion: 0, utilMes: 0, restante: 0, esHold: false };
     totalDist += st.distribucion; totalUtil += st.utilMes; totalRest += st.restante;
     return { concepto: cat.nombre, dist: st.distribucion, util: st.utilMes, restante: st.restante, esHold: st.esHold };
   });
@@ -330,7 +333,8 @@ function TablaDesgloseCuenta({ cuentaId, todasCats, saldosGlobales }) {
         <tbody>
           {filas.map((f, idx) => (
             <tr key={idx} style={{ borderBottom: "1px solid #15223333", color: f.esHold ? "#4F7A99" : B.texto, background: f.esHold ? "#1A65A408" : "transparent" }}>
-              <td style={{ padding: "6px 8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: f.esHold ? B.textoSub : B.texto }}>{f.concepto}{f.esHold ? " (fondo)" : ""}</td>
+              {/* Fix Bug #2: Eliminado f.esHold ? " (fondo)" : "" */}
+              <td style={{ padding: "6px 8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: f.esHold ? B.textoSub : B.texto }}>{f.concepto}</td>
               <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.dist)}</td>
               <td style={{ padding: "6px 4px", textAlign: "right", whiteSpace: "nowrap" }}>{fmt(f.util)}</td>
               <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{fmt(f.restante)}</td>
@@ -360,10 +364,16 @@ function Dashboard({ registros = [], pagos = [], mesFiltro, saldosGlobales, toda
   const [cuentaDetalle, setCuentaDetalle] = useState(null);
 
   const saldoTotalGlobal = CUENTAS.reduce((s, c) => s + (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0), 0);
-  const gananciaAcumulada = saldosGlobales.statsCat["Ganancias"]?.restante || 0;
+  
+  // Utiliza el ID estricto para extraer la ganancia (Fix Bug #1)
+  const gananciaCat = todasCats.find(c => c.nombre === "Ganancias");
+  const gananciaAcumulada = gananciaCat ? (saldosGlobales.statsCat[gananciaCat.id]?.restante || 0) : 0;
   
   const ingresosMes = registros.filter(r => r.fecha.startsWith(mesFiltro)).reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
   const pagosPendientes = pagos.filter(p => p.mes === mesFiltro && !p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
+  
+  // Nueva Métrica de Total de Gastos del Mes (Fix Bug #3)
+  const gastosMes = pagos.filter(p => p.mes === mesFiltro && p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", boxSizing: "border-box" }}>
@@ -376,6 +386,7 @@ function Dashboard({ registros = [], pagos = [], mesFiltro, saldosGlobales, toda
           { label: "SALDO TOTAL CUENTAS", val: fmtDisplay(saldoTotalGlobal), color: B.texto },
           { label: "GANANCIA ACUMULADA", val: fmtDisplay(gananciaAcumulada), color: "#22C55E" },
           { label: "INGRESO DEL MES", val: fmtDisplay(ingresosMes), color: B.celeste },
+          { label: "TOTAL GASTOS DEL MES", val: fmtDisplay(gastosMes), color: "#EF4444" },
           { label: "PAGOS PENDIENTES", val: fmtDisplay(pagosPendientes), color: "#FB923C" }
         ].map((item, i) => (
           <div key={i} style={{ background: B.fondoCard, border: `1px solid ${B.fondoBorde}`, borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -477,7 +488,7 @@ function Distribucion({ onGuardar, todasCats = [] }) {
               {CUENTAS.map(cu => (
                 <optgroup key={cu.id} label={cu.nombre}>
                   {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                    <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                    <option key={c.id} value={c.id}>{c.nombre}</option> // Ahora asigna estrictamente el cat.id
                   ))}
                 </optgroup>
               ))}
@@ -637,8 +648,22 @@ function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) 
   const registrosDelMes = registros.filter(r => r.fecha.startsWith(mesFiltro));
 
   const comenzarEdicion = (reg) => { 
-    setEditId(reg.id); setEditFecha(reg.fecha); setEditIngreso(reg.ingreso); setEditItems([...reg.items]); 
+    setEditId(reg.id); 
+    setEditFecha(reg.fecha); 
+    setEditIngreso(reg.ingreso); 
+
+    // Migración segura al editar para transformar nombres viejos a IDs nuevos automáticamente
+    const migratedItems = reg.items.map(it => {
+        let catId = it.cat;
+        if (!catId.startsWith("sub_") && !catId.startsWith("g") && !catId.startsWith("n") && !catId.startsWith("i") && !catId.startsWith("e") && !catId.startsWith("pr")) {
+            const match = todasCats.find(c => c.nombre === it.cat);
+            if (match) catId = match.id;
+        }
+        return { ...it, cat: catId };
+    });
+    setEditItems(migratedItems); 
   };
+
   const guardarEdicion = () => {
     const totalBruto = parseFloat(editIngreso) || 0;
     const totalDist = editItems.reduce((acc, cur) => acc + (parseFloat(cur.monto) || 0), 0);
@@ -649,7 +674,7 @@ function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) 
   };
   
   const eliminarRegistro = (id) => { 
-    if (confirm("¿Estás seguro de eliminar esta distribución?")) setRegistros(registros.filter(r => r.id !== id)); 
+    if (window.confirm("¿Estás seguro de eliminar esta distribución?")) setRegistros(registros.filter(r => r.id !== id)); 
   };
   const updItem = (index, field, value) => { const copy = [...editItems]; copy[index][field] = value; setEditItems(copy); };
 
@@ -672,7 +697,7 @@ function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) 
                       {CUENTAS.map(cu => (
                         <optgroup key={cu.id} label={cu.nombre}>
                           {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                            <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                            <option key={c.id} value={c.id}>{c.nombre}</option> // Ahora asigna estrictamente el cat.id
                           ))}
                         </optgroup>
                       ))}
@@ -706,7 +731,7 @@ function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) 
               <div style={{ display: "flex", flexDirection: "column", gap: 4, background: "#06111F", padding: 8, borderRadius: 10 }}>
                 {r.items.map((it, idx) => (
                   <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                    <span style={{ color: B.texto }}>• {it.cat}</span>
+                    <span style={{ color: B.texto }}>• {todasCats.find(c => c.id === it.cat)?.nombre || it.cat}</span>
                     <span style={{ color: B.textoSub, fontWeight: 600 }}>{fmtDisplay(it.monto)}</span>
                   </div>
                 ))}
@@ -727,7 +752,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({});
   
-  // Estados Transferencias Internas
   const [mostrarTransf, setMostrarTransf] = useState(false);
   const [trOrigen, setTrOrigen] = useState("");
   const [trDestino, setTrDestino] = useState("");
@@ -775,21 +799,26 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
     if (!trOrigen || !trDestino || isNaN(montoNum) || montoNum <= 0) return;
     if (trOrigen === trDestino) { alert("La categoría de origen y destino deben ser distintas."); return; }
     
+    // Verificamos por ID ahora
     const disp = saldosGlobales.statsCat[trOrigen]?.restante || 0;
     if (montoNum > disp) { alert(`Fondos insuficientes. Disponible: ${fmt(disp)}`); return; }
 
-    const catOr = todasCats.find(c => c.nombre === trOrigen);
-    const catDe = todasCats.find(c => c.nombre === trDestino);
+    const catOr = todasCats.find(c => c.id === trOrigen);
+    const catDe = todasCats.find(c => c.id === trDestino);
     
     setTransferencias([...transferencias, {
       id: Date.now().toString(),
+      fecha: hoy(), // Agregada la fecha actual
       mes: mesFiltro,
-      origen: trOrigen,
+      origen: catOr.id,
+      origenNombre: catOr.nombre,
       origenCuenta: catOr.cuenta,
-      destino: trDestino,
+      destino: catDe.id,
+      destinoNombre: catDe.nombre,
       destinoCuenta: catDe.cuenta,
       monto: montoNum
     }]);
+    
     setTrOrigen(""); setTrDestino(""); setTrMonto(0);
     setMostrarTransf(false);
   };
@@ -809,51 +838,76 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
       </div>
 
       {mostrarTransf && (
-        <Card style={{ border: `1px solid ${B.celeste}`, background: "#0C1828" }}>
-          <Lbl style={{ color: B.celeste }}>TRANSFERENCIA INTERNA DE FONDOS</Lbl>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <Lbl style={{ marginBottom: 4 }}>De (Sale el dinero)</Lbl>
-              <select value={trOrigen} onChange={e => setTrOrigen(e.target.value)} style={minimalistSelectStyle}>
-                <option value="" style={{ color: "#000" }}>Seleccionar Origen...</option>
-                {CUENTAS.map(cu => (
-                  <optgroup key={`ori_${cu.id}`} label={cu.nombre.toUpperCase()}>
-                    {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                      <option key={`o-${c.id}`} value={c.nombre} style={{ color: "#000" }}>
-                        {c.nombre} (Disp: {fmt(saldosGlobales.statsCat[c.nombre]?.restante || 0)})
-                      </option>
-                    ))}
-                  </optgroup>
+        <>
+          <Card style={{ border: `1px solid ${B.celeste}`, background: "#0C1828", marginBottom: 8 }}>
+            <Lbl style={{ color: B.celeste }}>TRANSFERENCIA INTERNA DE FONDOS</Lbl>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <Lbl style={{ marginBottom: 4 }}>De (Sale el dinero)</Lbl>
+                <select value={trOrigen} onChange={e => setTrOrigen(e.target.value)} style={minimalistSelectStyle}>
+                  <option value="" style={{ color: "#000" }}>Seleccionar Origen...</option>
+                  {CUENTAS.map(cu => (
+                    <optgroup key={`ori_${cu.id}`} label={cu.nombre.toUpperCase()}>
+                      {todasCats.filter(c => c.cuenta === cu.id).map(c => (
+                        <option key={`o-${c.id}`} value={c.id} style={{ color: "#000" }}>
+                          {c.nombre} (Disp: {fmt(saldosGlobales.statsCat[c.id]?.restante || 0)})
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <Lbl style={{ marginBottom: 4 }}>Para (Entra el dinero)</Lbl>
+                <select value={trDestino} onChange={e => setTrDestino(e.target.value)} style={minimalistSelectStyle}>
+                  <option value="" style={{ color: "#000" }}>Seleccionar Destino...</option>
+                  {CUENTAS.map(cu => (
+                    <optgroup key={`des_${cu.id}`} label={cu.nombre.toUpperCase()}>
+                      {todasCats.filter(c => c.cuenta === cu.id).map(c => (
+                        <option key={`d-${c.id}`} value={c.id} disabled={c.id === trOrigen} style={{ color: "#000" }}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", marginBottom: 6 }}>
+                <Lbl style={{ marginBottom: 4 }}>Monto a transferir</Lbl>
+                <InputDecimalContable 
+                   value={trMonto} 
+                   onChange={val => setTrMonto(val)} 
+                   style={{ border: "none", borderBottom: `2px solid ${B.celeste}`, borderRadius: 0, padding: "8px 0", background: "transparent" }}
+                   inputStyle={{ textAlign: "left", fontSize: 20, fontWeight: "bold" }}
+                />
+              </div>
+              <Btn onClick={ejecutarTransferencia} disabled={!trOrigen || !trDestino || !trMonto || trMonto <= 0}>Confirmar Movimiento</Btn>
+            </div>
+          </Card>
+
+          {/* HISTORIAL DE TRANSFERENCIAS DEL MES (Fix Bug #4) */}
+          <Card style={{ background: "#09121F", marginBottom: 12 }}>
+            <Lbl style={{ color: B.textoSub }}>HISTORIAL DE TRANSFERENCIAS ({mesFiltro})</Lbl>
+            {transferencias.filter(t => t.mes === mesFiltro).length === 0 ? (
+              <div style={{ fontSize: 12, color: B.textoSub, textAlign: "center", padding: "10px 0" }}>No hay transferencias este mes.</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                {[...transferencias].filter(t => t.mes === mesFiltro).reverse().map(t => (
+                  <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0C1828", border: `1px solid ${B.fondoBorde}`, borderRadius: 10, padding: "10px" }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: B.textoSub }}>{t.fecha ? t.fecha.split("-").reverse().join("/") : t.mes}</div>
+                      <div style={{ fontSize: 12, color: B.texto, fontWeight: 600 }}>{t.origenNombre || t.origen} ➔ {t.destinoNombre || t.destino}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ fontSize: 14, fontWeight: "bold", color: B.celeste }}>{fmt(t.monto)}</div>
+                      <button onClick={() => { if(window.confirm("¿Eliminar transferencia?")) setTransferencias(transferencias.filter(x => x.id !== t.id)); }} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 20, cursor: "pointer", padding: "0 4px" }}>✕</button>
+                    </div>
+                  </div>
                 ))}
-              </select>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <Lbl style={{ marginBottom: 4 }}>Para (Entra el dinero)</Lbl>
-              <select value={trDestino} onChange={e => setTrDestino(e.target.value)} style={minimalistSelectStyle}>
-                <option value="" style={{ color: "#000" }}>Seleccionar Destino...</option>
-                {CUENTAS.map(cu => (
-                  <optgroup key={`des_${cu.id}`} label={cu.nombre.toUpperCase()}>
-                    {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                      <option key={`d-${c.id}`} value={c.nombre} disabled={c.nombre === trOrigen} style={{ color: "#000" }}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", marginBottom: 6 }}>
-              <Lbl style={{ marginBottom: 4 }}>Monto a transferir</Lbl>
-              <InputDecimalContable 
-                 value={trMonto} 
-                 onChange={val => setTrMonto(val)} 
-                 style={{ border: "none", borderBottom: `2px solid ${B.celeste}`, borderRadius: 0, padding: "8px 0", background: "transparent" }}
-                 inputStyle={{ textAlign: "left", fontSize: 20, fontWeight: "bold" }}
-              />
-            </div>
-            <Btn onClick={ejecutarTransferencia} disabled={!trOrigen || !trDestino || !trMonto || trMonto <= 0}>Confirmar Movimiento</Btn>
-          </div>
-        </Card>
+              </div>
+            )}
+          </Card>
+        </>
       )}
 
       <Card glow style={{ padding: 14 }}>
@@ -946,7 +1000,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
                       <div key={sub.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#09121F", border: "1px solid #1A2E44", borderRadius: 10, padding: "8px 12px", fontSize: 13, color: B.texto }}>
                         <span style={{ flex: 1 }}>{sub.nombre}</span>
                         
-                        {/* Controles de orden */}
                         <div style={{ display: "flex", gap: 2, marginRight: 6 }}>
                            <button onClick={() => moverCat(sub.id, -1)} disabled={idx === 0} style={{ background: "transparent", border: "none", color: idx === 0 ? "#1A2E44" : B.textoSub, cursor: idx === 0 ? "default" : "pointer", padding: "4px", fontSize: 14 }}>↑</button>
                            <button onClick={() => moverCat(sub.id, 1)} disabled={idx === subcatsDeEstaCuenta.length - 1} style={{ background: "transparent", border: "none", color: idx === subcatsDeEstaCuenta.length - 1 ? "#1A2E44" : B.textoSub, cursor: idx === subcatsDeEstaCuenta.length - 1 ? "default" : "pointer", padding: "4px", fontSize: 14 }}>↓</button>
@@ -968,7 +1021,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
 }
 
 function App() {
-  // Las llaves _v5 aseguran que recuperes automáticamente toda la información de la versión que enviaste
   const [tab, setTab] = useStore("ar_tab_v5", "inicio");
   const [registros, setRegistros] = useStore("ar_registros_v5", []);
   const [pagos, setPagos] = useStore("ar_pagos_v5", INITIAL_PAGOS);
@@ -996,7 +1048,6 @@ function App() {
     }
   }, [mesFiltro, pagos.length]);
 
-  // Se ejecuta la lógica maestra de cálculo para todas las vistas
   const saldosGlobales = useMemo(() => calcularSaldos(mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias), [mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias]);
 
   return (
