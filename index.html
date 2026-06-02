@@ -35,6 +35,35 @@ html, body {
 </head>
 <body>
 <div id="root"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPTc8u1SGEPwovPzHucedASfjmmqd3m1E",
+    authDomain: "agua-ruth-finanzas.firebaseapp.com",
+    databaseURL: "https://agua-ruth-finanzas-default-rtdb.firebaseio.com",
+    projectId: "agua-ruth-finanzas",
+    storageBucket: "agua-ruth-finanzas.firebasestorage.app",
+    messagingSenderId: "823173693215",
+    appId: "1:823173693215:web:b17797796593db744bba2a"
+  };
+
+  // Inicializar Firebase
+  const app = initializeApp(firebaseConfig);
+  
+  // Exponer referencias globales a la base de datos para que React/Babel pueda consumirlas
+  window.db = getDatabase(app);
+  window.dbRef = ref;
+  window.dbSet = set;
+  window.dbOnValue = onValue;
+  window.dbGet = get;
+
+  // Notificar al entorno de React que Firebase está listo
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <script type="text/babel">
 const { useState, useEffect, useMemo } = React;
 
@@ -151,13 +180,53 @@ const pct = (a,b) => (b > 0 ? ((a/b)*100).toFixed(1)+"%" : "0%");
 const hoy = () => new Date().toISOString().slice(0, 10);
 const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
 
-function useStore(key, init) {
+// Hook para variables que SOLO se guardan de manera local (filtros visuales del dispositivo)
+function useLocalStore(key, init) {
   const [v, set] = useState(() => {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; }
     catch { return init; }
   });
   useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key, v]);
   return [v, set];
+}
+
+// Hook de Sincronización Realtime vía Firebase para bases de datos compartidas
+function useFirebaseStore(key, init) {
+  const [v, setV] = useState(init);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!window.db) return;
+    const dataRef = window.dbRef(window.db, key);
+    
+    const unsubscribe = window.dbOnValue(dataRef, (snapshot) => {
+      let data = snapshot.val();
+      
+      // Asegurar que los Arrays no se destruyan si Firebase los parsea como objetos anónimos
+      if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(init)) {
+        data = Object.values(data);
+      }
+
+      if (snapshot.exists() && data) {
+        setV(data);
+      } else {
+        setV(init);
+      }
+      setIsLoaded(true);
+    });
+
+    return () => unsubscribe();
+  }, [key]);
+
+  const setValue = (newValue) => {
+    const valueToStore = typeof newValue === "function" ? newValue(v) : newValue;
+    setV(valueToStore); // Activa respuesta rápida UI
+    if (window.db) {
+      window.dbSet(window.dbRef(window.db, key), valueToStore);
+    }
+  };
+
+  return [v, setValue, isLoaded];
 }
 
 const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias) => {
@@ -184,7 +253,7 @@ const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pago
       }
 
       if (matchedCat) {
-        pagoAcat[p.id] = matchedCat.id;
+        pagoAcat[p.id] = matchedCat.id; 
       } else {
         const holdCat = todasCats.find(c => c.cuenta === (p.cuenta || "general") && (c.nombre.toLowerCase().includes("hold") || c.nombre.toLowerCase().includes("fondo")));
         if (holdCat) {
@@ -389,6 +458,7 @@ function TablaDesgloseCuenta({ cuentaId, todasCats, saldosGlobales }) {
 
 function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], setTransferencias, mesFiltro, saldosGlobales, todasCats }) {
   const [cuentaDetalle, setCuentaDetalle] = useState(null);
+  
   const [showImprevisto, setShowImprevisto] = useState(false);
   const [impNombre, setImpNombre] = useState("");
   const [impMonto, setImpMonto] = useState(0);
@@ -396,8 +466,10 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
   const [impDestino, setImpDestino] = useState("");
 
   const saldoTotalGlobal = CUENTAS.reduce((s, c) => s + (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0), 0);
+  
   const gananciaCat = todasCats.find(c => c.nombre === "Ganancias");
   const gananciaAcumulada = gananciaCat ? (saldosGlobales.statsCat[gananciaCat.id]?.restante || 0) : 0;
+  
   const ingresosMes = registros.filter(r => r.fecha.startsWith(mesFiltro)).reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
   const pagosPendientes = pagos.filter(p => p.mes === mesFiltro && !p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
   const gastosMes = pagos.filter(p => p.mes === mesFiltro && p.ok && !p.isImprevisto).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
@@ -434,7 +506,7 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
       monto: montoNum,
       cuenta: catDe.cuenta,
       catId: catDe.id, 
-      ok: true,
+      ok: true,        
       mes: mesFiltro,
       isImprevisto: true
     };
@@ -673,7 +745,6 @@ function Pagos({ pagos = [], setPagos, mesFiltro, saldosGlobales, todasCats = []
     setNuevo({ semana: sem, nombre: "", monto: "", cuenta: "general" });
   };
 
-  // Lógica para el Indicador de Fondos Completados
   const checkFondos = (p) => {
     if (p.ok) return false;
     let catMatch = null;
@@ -1199,29 +1270,94 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
   );
 }
 
-function App() {
-  const [tab, setTab] = useStore("ar_tab_v5", "inicio");
-  const [registros, setRegistros] = useStore("ar_registros_v5", []);
-  const [pagos, setPagos] = useStore("ar_pagos_v5", INITIAL_PAGOS);
-  const [todasCats, setTodasCats] = useStore("ar_cats_v5", INITIAL_CATS);
-  const [balancesIniciales, setBalancesIniciales] = useStore("ar_balances_v5", {});
-  const [mesFiltro, setMesFiltro] = useStore("ar_mes_filtro_v5", obtenerMesActual());
-  const [transferencias, setTransferencias] = useStore("ar_transferencias_v5", []);
+// COMPONENTE PRINCIPAL CON LÓGICA DE CARGA Y MIGRACIÓN HACIA FIREBASE
+function Main() {
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    const initFirebaseAndMigrate = async () => {
+      if (!window.db) return; 
+      
+      const keys = ["ar_registros_v5", "ar_pagos_v5", "ar_cats_v5", "ar_balances_v5", "ar_transferencias_v5"];
+      let needsMig = false;
+      let migData = {};
+      
+      // Intentar leer datos de localStorage
+      for (let k of keys) {
+        const local = localStorage.getItem(k);
+        if (local) {
+          needsMig = true;
+          migData[k] = JSON.parse(local);
+        }
+      }
+
+      if (needsMig) {
+        try {
+          // Revisar si Firebase está vacío en la clave de registros para no sobreescribir datos compartidos
+          const snap = await window.dbGet(window.dbRef(window.db, "ar_registros_v5"));
+          if (!snap.exists()) {
+            console.log("Subiendo datos locales a Firebase...");
+            for (let k of keys) {
+              if (migData[k] !== undefined) {
+                await window.dbSet(window.dbRef(window.db, k), migData[k]);
+              }
+            }
+          }
+          // Limpiar el teléfono para evitar subidas dobles
+          for (let k of keys) {
+            localStorage.removeItem(k);
+          }
+        } catch (error) {
+          console.error("Error durante la migración a Firebase:", error);
+        }
+      }
+      
+      setIsReady(true);
+    };
+
+    if (window.db) {
+      initFirebaseAndMigrate();
+    } else {
+      const handleReady = () => initFirebaseAndMigrate();
+      window.addEventListener('firebase-ready', handleReady);
+      return () => window.removeEventListener('firebase-ready', handleReady);
+    }
+  }, []);
+
+  if (!isReady) {
+    return (
+      <div style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: B.fondo, color: B.celeste }}>
+        <div style={{ width: 40, height: 40, border: `4px solid ${B.fondoBorde}`, borderTopColor: B.celeste, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        <h3 style={{ marginTop: 20, letterSpacing: "0.1em", fontWeight: 700 }}>CONECTANDO A LA NUBE</h3>
+      </div>
+    );
+  }
+
+  return <App />;
+}
+
+function App() {
+  const [tab, setTab] = useLocalStore("ar_tab_v5", "inicio");
+  const [mesFiltro, setMesFiltro] = useLocalStore("ar_mes_filtro_v5", obtenerMesActual());
+
+  const [registros, setRegistros, regLoaded] = useFirebaseStore("ar_registros_v5", []);
+  const [pagos, setPagos, pagLoaded] = useFirebaseStore("ar_pagos_v5", INITIAL_PAGOS);
+  const [todasCats, setTodasCats, catLoaded] = useFirebaseStore("ar_cats_v5", INITIAL_CATS);
+  const [balancesIniciales, setBalancesIniciales, balLoaded] = useFirebaseStore("ar_balances_v5", {});
+  const [transferencias, setTransferencias, transLoaded] = useFirebaseStore("ar_transferencias_v5", []);
+
+  // Adaptación de compatibilidad para datos antiguos
+  useEffect(() => {
+    if (!balLoaded) return;
     const keys = Object.keys(balancesIniciales);
     if (keys.length > 0 && !keys.some(k => k.includes("-"))) {
       setBalancesIniciales({ "2026-05": balancesIniciales });
     }
-  }, []); 
-
-  const svgInicio = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
-  const svgDist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
-  const svgPagos = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
-  const svgHist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
-  const svgCuentas = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
+  }, [balLoaded]); 
 
   useEffect(() => {
+    if (!pagLoaded) return;
     if (pagos.length > 0 && !pagos[0].mes) {
       const mesAct = obtenerMesActual();
       setPagos(pagos.map(p => ({ ...p, mes: p.mes || mesAct })));
@@ -1229,12 +1365,24 @@ function App() {
       const tienePagosParaMes = pagos.some(p => p.mes === mesFiltro);
       if (!tienePagosParaMes) {
         const nuevosPagosMes = INITIAL_PAGOS.map(p => ({ ...p, id: p.id + "_" + mesFiltro, mes: mesFiltro, ok: false }));
-        setPagos(prev => [...prev, ...nuevosPagosMes]);
+        // Prevención de duplicados exactos usando Set
+        setPagos(prev => {
+          const prevIds = new Set(prev.map(x => x.id));
+          const toAdd = nuevosPagosMes.filter(x => !prevIds.has(x.id));
+          if (toAdd.length === 0) return prev;
+          return [...prev, ...toAdd];
+        });
       }
     }
-  }, [mesFiltro, pagos.length]);
+  }, [mesFiltro, pagos.length, pagLoaded]);
 
   const saldosGlobales = useMemo(() => calcularSaldos(mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias), [mesFiltro, todasCats, balancesIniciales, registros, pagos, transferencias]);
+
+  const svgInicio = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
+  const svgDist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
+  const svgPagos = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
+  const svgHist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
+  const svgCuentas = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", backgroundColor: B.fondo, color: B.texto, boxSizing: "border-box", overflow: "hidden" }}>
@@ -1286,7 +1434,7 @@ function App() {
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+root.render(<Main />);
 </script>
 </body>
 </html>
