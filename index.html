@@ -172,7 +172,6 @@ const calcularSaldos = (mesFiltro, todasCats, balancesIniciales, registros, pago
 
   const pagoAcat = {};
   pagos.filter(p => p.ok && p.mes === mesFiltro).forEach(p => {
-    // NUEVA REGLA: Si el pago trae catId explícito (como en Imprevistos), vincúlalo directamente.
     if (p.catId) {
       pagoAcat[p.id] = p.catId;
     } else {
@@ -287,7 +286,6 @@ function Btn({ children, onClick, v = "primary", style = {}, disabled = false })
   return <button onClick={onClick} disabled={disabled} style={{ ...vs[v], borderRadius: 14, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: "100%", boxSizing: "border-box", ...style }}>{children}</button>;
 }
 
-// NUEVO: Componente Gráfico de Anillo
 function DonutChart({ data, size = 120 }) {
   const radius = 15.9155;
   let currentOffset = 0;
@@ -391,8 +389,6 @@ function TablaDesgloseCuenta({ cuentaId, todasCats, saldosGlobales }) {
 
 function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], setTransferencias, mesFiltro, saldosGlobales, todasCats }) {
   const [cuentaDetalle, setCuentaDetalle] = useState(null);
-  
-  // Estados para Modal de Gasto Imprevisto
   const [showImprevisto, setShowImprevisto] = useState(false);
   const [impNombre, setImpNombre] = useState("");
   const [impMonto, setImpMonto] = useState(0);
@@ -400,15 +396,11 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
   const [impDestino, setImpDestino] = useState("");
 
   const saldoTotalGlobal = CUENTAS.reduce((s, c) => s + (saldosGlobales.statsCuentas[c.id]?.restante || 0) - (saldosGlobales.pagMesSinCatPorCuenta[c.id] || 0), 0);
-  
   const gananciaCat = todasCats.find(c => c.nombre === "Ganancias");
   const gananciaAcumulada = gananciaCat ? (saldosGlobales.statsCat[gananciaCat.id]?.restante || 0) : 0;
-  
   const ingresosMes = registros.filter(r => r.fecha.startsWith(mesFiltro)).reduce((s, r) => s + (parseFloat(r.ingreso) || 0), 0);
   const pagosPendientes = pagos.filter(p => p.mes === mesFiltro && !p.ok).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
   const gastosMes = pagos.filter(p => p.mes === mesFiltro && p.ok && !p.isImprevisto).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
-  
-  // Nueva Métrica 6: Gastos Imprevistos
   const gastosImprevistos = pagos.filter(p => p.mes === mesFiltro && p.ok && p.isImprevisto).reduce((s, p) => s + (parseFloat(p.monto) || 0), 0);
 
   const ejecutarImprevisto = () => {
@@ -422,7 +414,6 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
     const catOr = todasCats.find(c => c.id === impOrigen);
     const catDe = todasCats.find(c => c.id === impDestino);
 
-    // 1. Crear Transferencia Interna (Financiamiento)
     const nuevaTransf = {
       id: Date.now().toString() + "_tr",
       fecha: hoy(),
@@ -436,15 +427,14 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
       monto: montoNum
     };
 
-    // 2. Ejecutar el Pago de Inmediato
     const nuevoPago = {
       id: Date.now().toString() + "_pg",
       semana: 1, 
       nombre: impNombre.trim() || `Imprevisto: ${catDe.nombre}`,
       monto: montoNum,
       cuenta: catDe.cuenta,
-      catId: catDe.id, // Vínculo estricto
-      ok: true,        // Pagado
+      catId: catDe.id, 
+      ok: true,
       mes: mesFiltro,
       isImprevisto: true
     };
@@ -520,7 +510,6 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
         </Card>
       )}
 
-      {/* Grid ahora simétrico: 3x2 (6 métricas) */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%" }}>
         {[
           { label: "SALDO TOTAL CUENTAS", val: fmtDisplay(saldoTotalGlobal), color: B.texto },
@@ -635,7 +624,7 @@ function Distribucion({ onGuardar, todasCats = [] }) {
               {CUENTAS.map(cu => (
                 <optgroup key={cu.id} label={cu.nombre}>
                   {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                    <option key={c.id} value={c.id}>{c.nombre}</option> // Ahora asigna estrictamente el cat.id
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
                   ))}
                 </optgroup>
               ))}
@@ -655,7 +644,7 @@ function Distribucion({ onGuardar, todasCats = [] }) {
   );
 }
 
-function Pagos({ pagos = [], setPagos, mesFiltro }) {
+function Pagos({ pagos = [], setPagos, mesFiltro, saldosGlobales, todasCats = [] }) {
   const [sem, setSem] = useState(1);
   const [editMode, setEditMode] = useState(false);
   const [nuevo, setNuevo] = useState({ semana: 1, nombre: "", monto: "", cuenta: "general" });
@@ -684,6 +673,29 @@ function Pagos({ pagos = [], setPagos, mesFiltro }) {
     setNuevo({ semana: sem, nombre: "", monto: "", cuenta: "general" });
   };
 
+  // Lógica para el Indicador de Fondos Completados
+  const checkFondos = (p) => {
+    if (p.ok) return false;
+    let catMatch = null;
+    if (p.catId) {
+      catMatch = todasCats.find(c => c.id === p.catId);
+    } else {
+      const np = p.nombre.trim().toLowerCase();
+      if (p.cuenta === "nomina" && np.startsWith("nómina -")) {
+        catMatch = todasCats.find(c => c.cuenta === "nomina" && c.nombre === (p.semana === 2 ? "1ra Quincena" : p.semana === 4 ? "2da Quincena" : ""));
+      } else {
+        catMatch = todasCats.find(c => c.cuenta === (p.cuenta || "general") && c.nombre.trim().toLowerCase() === np);
+      }
+      if (!catMatch) {
+        catMatch = todasCats.find(c => c.cuenta === (p.cuenta || "general") && (c.nombre.toLowerCase().includes("hold") || c.nombre.toLowerCase().includes("fondo")));
+      }
+    }
+    if (catMatch && saldosGlobales && saldosGlobales.statsCat[catMatch.id]) {
+      return saldosGlobales.statsCat[catMatch.id].restante >= p.monto;
+    }
+    return false;
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -710,6 +722,8 @@ function Pagos({ pagos = [], setPagos, mesFiltro }) {
             {fSem(sem).length === 0 && <div style={{ fontSize: 13, color: B.textoSub, textAlign: "center", padding: "10px 0" }}>No hay rubros programados.</div>}
             {fSem(sem).map(p => {
               const esEditando = idEdicionInline === p.id;
+              const fondosCompletos = checkFondos(p);
+
               return (
                 <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 0", borderBottom: `1px solid ${B.fondoBorde}44` }}>
                   {esEditando ? (
@@ -734,7 +748,11 @@ function Pagos({ pagos = [], setPagos, mesFiltro }) {
                         {p.ok ? "✓" : ""}
                       </button>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, color: p.ok ? B.textoSub : B.texto }}>{p.nombre} {p.isImprevisto && <span style={{ color: "#EF4444", fontSize: 10, marginLeft: 4 }}>[Imprevisto]</span>}</div>
+                        <div style={{ fontSize: 14, color: p.ok ? B.textoSub : B.texto, display: "flex", alignItems: "center", gap: 6 }}>
+                            {p.nombre} 
+                            {p.isImprevisto && <span style={{ color: "#EF4444", fontSize: 10 }}>[Imprevisto]</span>}
+                            {fondosCompletos && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }} title="Fondos completos" />}
+                        </div>
                         <div style={{ fontSize: 9, color: B.textoSub, textTransform: "uppercase" }}>SALIDA: {p.cuenta}</div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -771,14 +789,21 @@ function Pagos({ pagos = [], setPagos, mesFiltro }) {
           </div>
           <Lbl style={{ marginTop: 14 }}>RUBROS ASIGNADOS AL MOMENTO</Lbl>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 200, overflowY: "auto" }}>
-            {pagosDelMes.map(p => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#091424", padding: "8px 10px", borderRadius: 10 }}>
-                <span style={{ fontSize: 10, color: B.textoSub, minWidth: 26 }}>S{p.semana}</span>
-                <span style={{ flex: 1, fontSize: 13, color: B.texto, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre} {p.isImprevisto && <span style={{ color: "#EF4444", fontSize: 10 }}>[Imp]</span>}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: B.celeste }}>{fmt(p.monto).split(".")[0]}</span>
-                <button onClick={() => eliminarItem(p.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 24, padding: "0 6px", cursor: "pointer" }}>×</button>
-              </div>
-            ))}
+            {pagosDelMes.map(p => {
+              const fondosCompletos = checkFondos(p);
+              return (
+                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, background: "#091424", padding: "8px 10px", borderRadius: 10 }}>
+                  <span style={{ fontSize: 10, color: B.textoSub, minWidth: 26 }}>S{p.semana}</span>
+                  <span style={{ flex: 1, fontSize: 13, color: B.texto, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: 6 }}>
+                      {p.nombre} 
+                      {p.isImprevisto && <span style={{ color: "#EF4444", fontSize: 10 }}>[Imp]</span>}
+                      {fondosCompletos && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981", flexShrink: 0 }} title="Fondos completos" />}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: B.celeste }}>{fmt(p.monto).split(".")[0]}</span>
+                  <button onClick={() => eliminarItem(p.id)} style={{ background: "transparent", border: "none", color: "#EF4444", fontSize: 24, padding: "0 6px", cursor: "pointer" }}>×</button>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}
@@ -842,7 +867,7 @@ function Historial({ registros = [], setRegistros, todasCats = [], mesFiltro }) 
                       {CUENTAS.map(cu => (
                         <optgroup key={cu.id} label={cu.nombre}>
                           {todasCats.filter(c => c.cuenta === cu.id).map(c => (
-                            <option key={c.id} value={c.id}>{c.nombre}</option> // Ahora asigna estrictamente el cat.id
+                            <option key={c.id} value={c.id}>{c.nombre}</option>
                           ))}
                         </optgroup>
                       ))}
@@ -944,7 +969,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
     if (!trOrigen || !trDestino || isNaN(montoNum) || montoNum <= 0) return;
     if (trOrigen === trDestino) { alert("La categoría de origen y destino deben ser distintas."); return; }
     
-    // Verificamos por ID ahora
     const disp = saldosGlobales.statsCat[trOrigen]?.restante || 0;
     if (montoNum > disp) { alert(`Fondos insuficientes. Disponible: ${fmt(disp)}`); return; }
 
@@ -953,7 +977,7 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
     
     setTransferencias([...transferencias, {
       id: Date.now().toString(),
-      fecha: hoy(), // Agregada la fecha actual
+      fecha: hoy(),
       mes: mesFiltro,
       origen: catOr.id,
       origenNombre: catOr.nombre,
@@ -970,7 +994,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
 
   const minimalistSelectStyle = { background: "transparent", border: "none", borderBottom: `2px solid ${B.celeste}44`, borderRadius: 0, padding: "8px 0", fontSize: 15, color: B.texto, outline: "none" };
 
-  // Extraemos los balances del mes seleccionado, o un objeto vacío (Aislamiento por mes)
   const balancesMes = balancesIniciales[mesFiltro] || {};
   const setBalancesMes = (catId, val) => {
     setBalancesIniciales(prev => ({
@@ -1042,7 +1065,6 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
             </div>
           </Card>
 
-          {/* HISTORIAL DE TRANSFERENCIAS DEL MES (Fix Bug #4) */}
           <Card style={{ background: "#09121F", marginBottom: 12 }}>
             <Lbl style={{ color: B.textoSub }}>HISTORIAL DE TRANSFERENCIAS ({mesFiltro})</Lbl>
             {transferencias.filter(t => t.mes === mesFiltro).length === 0 ? (
@@ -1186,14 +1208,12 @@ function App() {
   const [mesFiltro, setMesFiltro] = useStore("ar_mes_filtro_v5", obtenerMesActual());
   const [transferencias, setTransferencias] = useStore("ar_transferencias_v5", []);
 
-  // Lógica de migración (retrocompatibilidad) para envolver los balances existentes bajo el mes actual
   useEffect(() => {
     const keys = Object.keys(balancesIniciales);
-    // Si la base de datos de balances tiene llaves pero NINGUNA tiene el formato "YYYY-MM" (ej. "2026-05")
     if (keys.length > 0 && !keys.some(k => k.includes("-"))) {
       setBalancesIniciales({ "2026-05": balancesIniciales });
     }
-  }, []); // Solo se ejecuta al montar la aplicación
+  }, []); 
 
   const svgInicio = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></svg>';
   const svgDist = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.9l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>';
@@ -1238,7 +1258,7 @@ function App() {
       <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", width: "100%", boxSizing: "border-box" }}>
         {tab === "inicio" && <Dashboard registros={registros} pagos={pagos} setPagos={setPagos} transferencias={transferencias} setTransferencias={setTransferencias} todasCats={todasCats} mesFiltro={mesFiltro} saldosGlobales={saldosGlobales} />}
         {tab === "distribuir" && <Distribucion onGuardar={r => setRegistros([...registros, r])} todasCats={todasCats} />}
-        {tab === "pagos" && <Pagos pagos={pagos} setPagos={setPagos} mesFiltro={mesFiltro} />}
+        {tab === "pagos" && <Pagos pagos={pagos} setPagos={setPagos} mesFiltro={mesFiltro} saldosGlobales={saldosGlobales} todasCats={todasCats} />}
         {tab === "historial" && <Historial registros={registros} setRegistros={setRegistros} todasCats={todasCats} mesFiltro={mesFiltro} />}
         {tab === "cuentas" && <CuentasConfig balancesIniciales={balancesIniciales} setBalancesIniciales={setBalancesIniciales} todasCats={todasCats} setTodasCats={setTodasCats} transferencias={transferencias} setTransferencias={setTransferencias} mesFiltro={mesFiltro} saldosGlobales={saldosGlobales} />}
         <div style={{ height: 80, flexShrink: 0 }} />
