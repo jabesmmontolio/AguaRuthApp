@@ -43,14 +43,110 @@ window.dispatchEvent(new Event('firebase-ready'));
 <script type="text/babel">
 const { useState, useEffect, useMemo } = React;
 const B = { azulOscuro: "#1A65A4", celeste: "#70CCE1", azulMedio: "#4EA5E0", fondo: "#07101C", fondoCard: "#0C1828", fondoBorde: "#152233", texto: "#E8F4FD", textoSub: "#4F7A99" };
+
+// ESTRUCTURA BASE FIJA SOLICITADA
 const CUENTAS = [
-{ id: "general", nombre: "General", color: "#4EA5E0", num: "0071074923" },
-{ id: "nomina", nombre: "Nómina Empleados", color: "#70CCE1", num: "0071078372" },
+{ id: "general", nombre: "Agua Ruth", color: "#4EA5E0", num: "0071074923" },
+{ id: "nomina", nombre: "Nomina Empleados", color: "#70CCE1", num: "0071078372" },
 { id: "inversiones", nombre: "Inversiones", color: "#22C55E", num: "0071079263" },
-{ id: "emergencia", nombre: "Fondo Emergencia", color: "#F59E0B", num: "0071079273" },
-{ id: "prestamo", nombre: "Préstamo Reservas", color: "#A78BFA", num: "0071079283" },
+{ id: "emergencia", nombre: "Fondo de Emergencia", color: "#F59E0B", num: "0071079273" },
+{ id: "prestamo", nombre: "Prestamo Reservas", color: "#A78BFA", num: "0071079283" },
 { id: "insumos", nombre: "Insumos", color: "#FB923C", num: "0071074293" }
 ];
+
+const INITIAL_CATS = [
+// Agua Ruth
+{ id: "g_elec", nombre: "Electricidad", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_agua", nombre: "Agua", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_tel", nombre: "Telefono e Internet", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_bas", nombre: "Basura", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_alq", nombre: "Alquiler Local", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_tss", nombre: "Seguro TSS", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_inf", nombre: "Infotep", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_imp", nombre: "Imprevistos", cuenta: "general", color: "#4EA5E0" },
+{ id: "g_hld", nombre: "Hold/Fondo", cuenta: "general", color: "#4EA5E0" },
+
+// Inversiones
+{ id: "i_bot", nombre: "Botellones", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_tap", nombre: "Tapas", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_sel", nombre: "Sellos", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_eti", nombre: "Etiqueta", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_exh", nombre: "Exhibidores", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_mar", nombre: "Marketing", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_gan", nombre: "Ganancias", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_imp", nombre: "Imprevistos", cuenta: "inversiones", color: "#22C55E" },
+{ id: "i_hld", nombre: "Hold/Fondo", cuenta: "inversiones", color: "#22C55E" },
+
+// Fondo de Emergencia
+{ id: "e_imp", nombre: "Imprevistos", cuenta: "emergencia", color: "#F59E0B" },
+{ id: "e_repv", nombre: "Reparaciones de Vehiculos", cuenta: "emergencia", color: "#F59E0B" },
+{ id: "e_repm", nombre: "Reparaciones de Maquinarias", cuenta: "emergencia", color: "#F59E0B" },
+{ id: "e_hld", nombre: "Hold/Fondo", cuenta: "emergencia", color: "#F59E0B" },
+
+// Prestamo Reservas
+{ id: "p_ban", nombre: "Prestamo BanReservas", cuenta: "prestamo", color: "#A78BFA" },
+{ id: "p_coo", nombre: "Prestamo Coop", cuenta: "prestamo", color: "#A78BFA" },
+{ id: "p_abo", nombre: "Fondo Abono Prestamo", cuenta: "prestamo", color: "#A78BFA" },
+{ id: "p_imp", nombre: "Imprevistos", cuenta: "prestamo", color: "#A78BFA" },
+{ id: "p_hld", nombre: "Hold/Fondo", cuenta: "prestamo", color: "#A78BFA" },
+
+// Insumos
+{ id: "in_gas", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
+{ id: "in_ace", nombre: "Aceite de Vehiculos", cuenta: "insumos", color: "#FB923C" },
+{ id: "in_sal", nombre: "Sal", cuenta: "insumos", color: "#FB923C" },
+{ id: "in_clo", nombre: "Cloro", cuenta: "insumos", color: "#FB923C" },
+{ id: "in_det", nombre: "Detergente", cuenta: "insumos", color: "#FB923C" },
+{ id: "in_imp", nombre: "Imprevistos", cuenta: "insumos", color: "#FB923C" },
+{ id: "in_hld", nombre: "Hold/Fondo", cuenta: "insumos", color: "#FB923C" },
+
+// Nomina Empleados
+{ id: "n_q1", nombre: "1ra Quincena", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_q2", nombre: "2da Quincena", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_bon", nombre: "Bonificaciones", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_inc", nombre: "Incentivos", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_hex", nombre: "Horas Extras", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_fer", nombre: "Feriados", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_imp", nombre: "Imprevistos", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_ret", nombre: "Retencion de Seguros", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_qan", nombre: "Quincena Mes Anterior", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_fvac", nombre: "Fondo Contratacion por Vacaciones", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_fnav", nombre: "Fondo Salario de Navidad", cuenta: "nomina", color: "#70CCE1" },
+{ id: "n_hld", nombre: "Hold/Fondo", cuenta: "nomina", color: "#70CCE1" }
+];
+
+const INITIAL_PAGOS = [
+// SEMANA 1
+{ id: "base_s1_1", semana: 1, nombre: "TSS", monto: 14000, cuenta: "general", catId: "g_tss" },
+{ id: "base_s1_2", semana: 1, nombre: "Teléfono", monto: 2500, cuenta: "general", catId: "g_tel" },
+{ id: "base_s1_3", semana: 1, nombre: "Agua", monto: 290, cuenta: "general", catId: "g_agua" },
+{ id: "base_s1_4", semana: 1, nombre: "Infotep", monto: 500, cuenta: "general", catId: "g_inf" },
+{ id: "base_s1_5", semana: 1, nombre: "Basura", monto: 400, cuenta: "general", catId: "g_bas" },
+{ id: "base_s1_6", semana: 1, nombre: "Luz", monto: 11000, cuenta: "general", catId: "g_elec" },
+
+// SEMANA 2 (1ra Quincena)
+{ id: "base_s2_1", semana: 2, nombre: "Ariel", monto: 5000, cuenta: "nomina", catId: "n_q1" },
+{ id: "base_s2_2", semana: 2, nombre: "Gedalias", monto: 10000, cuenta: "nomina", catId: "n_q1" },
+{ id: "base_s2_3", semana: 2, nombre: "Mikaias", monto: 3250, cuenta: "nomina", catId: "n_q1" },
+{ id: "base_s2_4", semana: 2, nombre: "Yudith", monto: 8500, cuenta: "nomina", catId: "n_q1" },
+{ id: "base_s2_5", semana: 2, nombre: "Jeison", monto: 10000, cuenta: "nomina", catId: "n_q1" },
+{ id: "base_s2_6", semana: 2, nombre: "Javielo", monto: 7500, cuenta: "nomina", catId: "n_q1" },
+
+// SEMANA 3
+{ id: "base_s3_1", semana: 3, nombre: "Préstamo Coop", monto: 15000, cuenta: "prestamo", catId: "p_coo" },
+{ id: "base_s3_2", semana: 3, nombre: "Local", monto: 13680, cuenta: "general", catId: "g_alq" },
+{ id: "base_s3_3", semana: 3, nombre: "Préstamo BanReservas", monto: 32200, cuenta: "prestamo", catId: "p_ban" },
+
+// SEMANA 4 (2da Quincena)
+{ id: "base_s4_1", semana: 4, nombre: "Ariel", monto: 5000, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_2", semana: 4, nombre: "Gedalias", monto: 10000, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_3", semana: 4, nombre: "Mikaias", monto: 3250, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_4", semana: 4, nombre: "Yudith", monto: 8500, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_5", semana: 4, nombre: "Jeison", monto: 10000, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_6", semana: 4, nombre: "Javielo", monto: 7500, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_7", semana: 4, nombre: "Ambiorix", monto: 5000, cuenta: "nomina", catId: "n_q2" },
+{ id: "base_s4_8", semana: 4, nombre: "Eduard", monto: 2000, cuenta: "nomina", catId: "n_q2" }
+];
+
 const SVG_CUENTAS = {
 general: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h16Z"/></svg>',
 inversiones: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="19" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="20" cy="19" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="8" cy="12" r="2"/></svg>',
@@ -60,6 +156,7 @@ emergencia: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" view
 prestamo: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949Z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>'
 };
 const SVG_EDITAR = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+
 const MESES_2026 = [
 {val: "2026-01", label: "Enero 2026" }, { val: "2026-02", label: "Febrero 2026" },
 {val: "2026-03", label: "Marzo 2026" }, { val: "2026-04", label: "Abril 2026" },
@@ -68,48 +165,7 @@ const MESES_2026 = [
 {val: "2026-09", label: "Septiembre 2026" }, { val: "2026-10", label: "Octubre 2026" },
 {val: "2026-11", label: "Noviembre 2026" }, { val: "2026-12", label: "Diciembre 2026" }
 ];
-const INITIAL_CATS = [
-{ id: "g1", nombre: "Electricidad", cuenta: "general", color: "#4EA5E0" },
-{ id: "g2", nombre: "Agua", cuenta: "general", color: "#4EA5E0" },
-{ id: "g3", nombre: "Teléfono e Internet", cuenta: "general", color: "#4EA5E0" },
-{ id: "g4", nombre: "Basura", cuenta: "general", color: "#4EA5E0" },
-{ id: "g5", nombre: "Alquiler Local", cuenta: "general", color: "#4EA5E0" },
-{ id: "g6", nombre: "TSS / Seguro", cuenta: "general", color: "#4EA5E0" },
-{ id: "g7", nombre: "Infotep", cuenta: "general", color: "#4EA5E0" },
-{ id: "n1", nombre: "1ra Quincena", cuenta: "nomina", color: "#70CCE1" },
-{ id: "n2", nombre: "2da Quincena", cuenta: "nomina", color: "#70CCE1" },
-{ id: "n3", nombre: "Bonificaciones", cuenta: "nomina", color: "#70CCE1"},
-{ id: "n4", nombre: "Incentivos", cuenta: "nomina", color: "#70CCE1" },
-{ id: "n5", nombre: "Horas Extras", cuenta: "nomina", color: "#70CCE1" },
-{ id: "n6", nombre: "Feriados", cuenta: "nomina", color: "#70CCE1" },
-{ id: "n7", nombre: "Fondo Contratacion por Vacaciones", cuenta: "nomina", color: "#70CCE1" },
-{ id: "n8", nombre: "Fondo Salario de Navidad", cuenta: "nomina", color: "#70CCE1" },
-{ id: "i1", nombre: "Botellones", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i2", nombre: "Tapas", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i3", nombre: "Sellos", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i4", nombre: "Etiquetas", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i5", nombre: "Exhibidores", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i6", nombre: "Marketing", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i7", nombre: "Computadora", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i8", nombre: "Alquiler Camioncito", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i9", nombre: "Pintura Exhibidores", cuenta: "inversiones", color: "#22C55E" },
-{ id: "i10", nombre: "Ganancias", cuenta: "inversiones", color: "#22C55E" },
-{ id: "e1", nombre: "Imprevistos", cuenta: "emergencia", color: "#F59E0B" },
-{ id: "e2", nombre: "Reparaciones de Motores", cuenta: "emergencia", color: "#F59E0B" },
-{ id: "e3", nombre: "Reparaciones de Maquinarias", cuenta: "emergencia", color: "#F59E0B" },
-{ id: "pr1", nombre: "Préstamo Coop", cuenta: "prestamo", color: "#A78BFA" },
-{ id: "pr2", nombre: "Préstamo Reservas", cuenta: "prestamo", color: "#A78BFA" },
-{ id: "pr3", nombre: "Acuerdo de Pago/TSS", cuenta: "prestamo", color: "#A78BFA" },
-{ id: "pr4", nombre: "Fondo Abono de Prestamos", cuenta: "prestamo", color: "#A78BFA" },
-{ id: "in1", nombre: "Aceite de Motores", cuenta: "insumos", color: "#FB923C" },
-{ id: "in2", nombre: "Gasolina", cuenta: "insumos", color: "#FB923C" },
-{ id: "in3", nombre: "Sal", cuenta: "insumos", color: "#FB923C" },
-{ id: "in4", nombre: "Cloro", cuenta: "insumos", color: "#FB923C" },
-{ id: "in5", nombre: "Detergente", cuenta: "insumos", color: "#FB923C" },
-{ id: "in6", nombre: "Guantes y Mascarillas", cuenta: "insumos", color: "#FB923C" },
-{ id: "in7", nombre: "Imprevistos Insumos", cuenta: "insumos", color: "#FB923C" }
-];
-const INITIAL_PAGOS = [];
+
 const FORMATEADOR_MONEDA = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmt = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
 const fmtDisplay = (n) => `RD$ ${FORMATEADOR_MONEDA.format(n || 0)}`;
@@ -126,11 +182,23 @@ function useLocalStore(key, init) {
   return [v, set];
 }
 
+// PERSISTENCIA MEJORADA: Lee SIEMPRE de localStorage primero. Evita borrados por caídas de Firebase.
 function useFirebaseStore(key, init) {
-  const [v, setV] = useState(init);
+  const [v, setV] = useState(() => {
+    try {
+      const storedData = localStorage.getItem(key);
+      return storedData ? JSON.parse(storedData) : init;
+    } catch (e) {
+      return init;
+    }
+  });
   const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
-    if (!window.db) return;
+    if (!window.db) {
+      setIsLoaded(true);
+      return;
+    }
     const dataRef = window.dbRef(window.db, key);
     const unsubscribe = window.dbOnValue(dataRef, (snapshot) => {
       let data = snapshot.val();
@@ -139,9 +207,11 @@ function useFirebaseStore(key, init) {
       }
       if (snapshot.exists() && data) {
         setV(data);
-      } else {
-        setV(init);
+        try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {} // Respaldo Local Automático
       }
+      setIsLoaded(true);
+    }, (error) => {
+      console.warn("⚠️ Firebase sin acceso o reglas vencidas. Utilizando Cache LocalStorage seguro.", error);
       setIsLoaded(true);
     });
     return () => unsubscribe();
@@ -150,7 +220,10 @@ function useFirebaseStore(key, init) {
   const setValue = (newValue) => {
     const valueToStore = typeof newValue === "function" ? newValue(v) : newValue;
     setV(valueToStore);
-    if (window.db) { window.dbSet(window.dbRef(window.db, key), valueToStore); }
+    try { localStorage.setItem(key, JSON.stringify(valueToStore)); } catch(e) {} // Respaldo Local Automático Inmediato
+    if (window.db) { 
+      try { window.dbSet(window.dbRef(window.db, key), valueToStore); } catch(e) {} 
+    }
   };
   return [v, setValue, isLoaded];
 }
@@ -298,7 +371,7 @@ function TablaDesgloseCuenta({ cuentaId, todasCats, saldosGlobales }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#11253E", padding: "8px 10px", borderBottom: "2px solid #152233" }}>
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 9, color: B.textoSub, fontWeight: 600 }}>No. {cuentaObj.num}</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>Agua Ruth / {nombreCorto}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>{cuentaObj.nombre}</span>
         </div>
         <div style={{ fontSize: 11, fontWeight: 700, color: B.celeste, paddingLeft: 6 }}>{fmt(totalRest)}</div>
       </div>
@@ -509,7 +582,6 @@ function Dashboard({ registros = [], pagos = [], setPagos, transferencias = [], 
                   <IconoCustom source={SVG_CUENTAS[c.id]} size={18} />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: B.texto }}>{c.nombre}</div>
-                    {!estaAbierta && <div style={{ fontSize: 10, color: B.textoSub }}>No. {c.num}</div>}
                   </div>
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: c.color }}>{fmtDisplay(val)}</div>
@@ -1103,34 +1175,8 @@ function CuentasConfig({ balancesIniciales, setBalancesIniciales, todasCats, set
 function Main() {
   const [isReady, setIsReady] = useState(false);
   useEffect(() => {
-    const initFirebaseAndMigrate = async () => {
-      if (!window.db) return; 
-      const keys = ["ar_registros_v5", "ar_pagos_v5", "ar_cats_v5", "ar_balances_v5", "ar_transferencias_v5"];
-      let needsMig = false;
-      let migData = {};
-      
-      for (let k of keys) {
-        const local = localStorage.getItem(k);
-        if (local) { needsMig = true; migData[k] = JSON.parse(local); }
-      }
-      if (needsMig) {
-        try {
-          const snap = await window.dbGet(window.dbRef(window.db, "ar_registros_v5"));
-          if (!snap.exists()) {
-            console.log("Subiendo datos locales a Firebase...");
-            for (let k of keys) { if (migData[k] !== undefined) await window.dbSet(window.dbRef(window.db, k), migData[k]); }
-          }
-          for (let k of keys) localStorage.removeItem(k);
-        } catch (error) { console.error("Error durante la migración a Firebase:", error); }
-      }
-      setIsReady(true);
-    };
-
-    if (window.db) { initFirebaseAndMigrate(); } else {
-      const handleReady = () => initFirebaseAndMigrate();
-      window.addEventListener('firebase-ready', handleReady);
-      return () => window.removeEventListener('firebase-ready', handleReady);
-    }
+    // Al iniciar, la aplicación está lista sin borrar la data local, garantizando persistencia
+    setIsReady(true);
   }, []);
 
   if (!isReady) {
@@ -1138,7 +1184,7 @@ function Main() {
       <div style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: B.fondo, color: B.celeste }}>
         <div style={{ width: 40, height: 40, border: `4px solid ${B.fondoBorde}`, borderTopColor: B.celeste, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-        <h3 style={{ marginTop: 20, letterSpacing: "0.1em", fontWeight: 700 }}>CONECTANDO A LA NUBE</h3>
+        <h3 style={{ marginTop: 20, letterSpacing: "0.1em", fontWeight: 700 }}>CARGANDO ARCHIVOS LOCALES...</h3>
       </div>
     );
   }
@@ -1161,22 +1207,18 @@ function App() {
     if (keys.length > 0 && !keys.some(k => k.includes("-"))) { setBalancesIniciales({ "2026-05": balancesIniciales }); }
   }, [balLoaded]); 
 
+  // PRECARGA AUTOMÁTICA DEL PRESUPUESTO FIJO CADA NUEVO MES
   useEffect(() => {
     if (!pagLoaded) return;
-    if (pagos.length > 0 && !pagos[0].mes) {
-      const mesAct = obtenerMesActual();
-      setPagos(pagos.map(p => ({ ...p, mes: p.mes || mesAct })));
-    } else {
-      const tienePagosParaMes = pagos.some(p => p.mes === mesFiltro);
-      if (!tienePagosParaMes) {
-        const nuevosPagosMes = INITIAL_PAGOS.map(p => ({ ...p, id: p.id + "_" + mesFiltro, mes: mesFiltro, ok: false }));
-        setPagos(prev => {
-          const prevIds = new Set(prev.map(x => x.id));
-          const toAdd = nuevosPagosMes.filter(x => !prevIds.has(x.id));
-          if (toAdd.length === 0) return prev;
-          return [...prev, ...toAdd];
-        });
-      }
+    const tienePagosParaMes = pagos.some(p => p.mes === mesFiltro);
+    if (!tienePagosParaMes) {
+      const nuevosPagosMes = INITIAL_PAGOS.map(p => ({ ...p, id: p.id + "_" + mesFiltro, mes: mesFiltro, ok: false }));
+      setPagos(prev => {
+        const prevIds = new Set(prev.map(x => x.id));
+        const toAdd = nuevosPagosMes.filter(x => !prevIds.has(x.id));
+        if (toAdd.length === 0) return prev;
+        return [...prev, ...toAdd];
+      });
     }
   }, [mesFiltro, pagos.length, pagLoaded]);
 
